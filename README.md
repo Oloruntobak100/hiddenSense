@@ -61,7 +61,8 @@ Premium food & drink imagery is wired as **fixed backgrounds** with **translucen
 | Key | Purpose |
 |-----|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Server only** writes (never expose publicly) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Public** anon key — browser auth (`signUp`, `signIn`, `verifyOtp`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only** — upserts `profiles` after auth (never expose publicly) |
 | `NEXT_PUBLIC_SITE_URL` | Absolute site root for shared links |
 | `NEXT_PUBLIC_CHECKOUT_BASE_URL` | Stub storefront URL; UTMs plus `mood`, `session_id`, `profile_id` query params are appended |
 | `ENABLE_QUICK_LOGIN` | Set `true` to allow `/login` outside development |
@@ -69,15 +70,20 @@ Premium food & drink imagery is wired as **fixed backgrounds** with **translucen
 
 If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is used so UI keeps working offline.
 
-## User flow
+## User flow (production auth)
 
-1. `/gate` collects first name, email, phone + opt-ins, inserts into `profiles`, sets the stub profile cookie (`hiddensense_profile_id`).
-2. `/quiz` submits answers through `submitQuiz`; engine stores `quiz_sessions`.
-3. `/result/[sessionId]` renders catalog pairing + commerce CTA + share + recipe modal.
-4. `/feedback/[sessionId]` persists `feedback`; `/thanks` closes the loop.
+1. **`/gate`** — Sign up with first name, email, password, phone, marketing toggles. Supabase sends a **verification code** (configure Email templates in dashboard).
+2. **`/verify?email=`** — Paste the code (free-form textarea; whitespace stripped). On success, **`profiles`** upserts with `auth_user_id`.
+3. **`/quiz`** — Mood Identification (protected route).
+4. **`/result/[sessionId]`** — Pairing + checkout stub + share.
+5. **`/feedback/[sessionId]`** → **`/thanks`**.
 
-Middleware blocks `/quiz`, `/result/*`, `/feedback/*` until the stub cookie exists.
+**`/login`** — Email + password for returning users (`signInWithPassword`), then same profile upsert.
 
-## Auth note
+Middleware protects **`/quiz`**, **`/result/*`**, **`/feedback/*`**: requires a **Supabase session** OR (in dev / `ENABLE_QUICK_LOGIN`) the legacy tester profile cookie.
 
-Production should replace the cookie stub with Supabase OTP and map `profiles.auth_user_id`, then revoke broad service-role access from anonymous flows.
+## Supabase Auth settings
+
+In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email**. Enable **Confirm signup** / email verification so users receive a code (adjust your email template to surface the OTP Supabase inserts).
+
+Site URL / redirect URLs must include your deployed origin (e.g. `https://your-app.vercel.app`).

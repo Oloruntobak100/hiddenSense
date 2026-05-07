@@ -7,7 +7,7 @@ import { getQuizSessionForProfile } from "@/lib/data/quiz-session";
 import { MOOD_FEELINGS } from "@/lib/catalog/moods";
 import { getRecommendation } from "@/lib/catalog/recommendations";
 import { buildCheckoutUrl } from "@/lib/checkout/build-checkout-url";
-import { getProfileIdFromCookies } from "@/lib/session/cookies";
+import { getCurrentProfileId } from "@/lib/auth/current-profile";
 import { getPublicSiteUrl } from "@/lib/env";
 import { ResultActions } from "@/components/result/ResultActions";
 
@@ -19,7 +19,7 @@ export default async function ResultPage({
   params: Promise<{ sessionId: string }>;
 }) {
   const { sessionId } = await params;
-  const profileId = await getProfileIdFromCookies();
+  const profileId = await getCurrentProfileId();
   if (!profileId) {
     notFound();
   }

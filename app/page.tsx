@@ -38,10 +38,10 @@ export default function Home() {
           <span aria-hidden>→</span>
         </Link>
         <Link
-          href="/gate"
+          href="/login"
           className="text-sm font-medium text-white/70 underline underline-offset-4 hover:text-white"
         >
-          I already unlocked
+          I already have an account
         </Link>
       </div>
       <footer className="flex flex-col items-center gap-2 text-xs text-white/40">

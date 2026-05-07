@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { DEMO_SESSION_ID } from "@/lib/session/constants";
 import { getQuizSessionForProfile } from "@/lib/data/quiz-session";
-import { getProfileIdFromCookies } from "@/lib/session/cookies";
+import { getCurrentProfileId } from "@/lib/auth/current-profile";
 import {
   getDemoResultPayload,
   isDemoSession,
@@ -24,7 +24,7 @@ const FeedbackSchema = z.object({
 });
 
 export async function submitFeedback(sessionId: string, formData: FormData) {
-  const profileId = await getProfileIdFromCookies();
+  const profileId = await getCurrentProfileId();
   if (!profileId) {
     redirect("/gate");
   }

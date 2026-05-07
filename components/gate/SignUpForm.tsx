@@ -1,22 +1,85 @@
 "use client";
 
-import { useActionState } from "react";
-import { submitGate, type GateState } from "@/app/actions/profile";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { ensureProfileAfterAuth } from "@/app/actions/profile";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
-const initial: GateState = {};
+export function SignUpForm() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-export function GateForm() {
-  const [state, action, pending] = useActionState(submitGate, initial);
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+
+    const fd = new FormData(e.currentTarget);
+    const email = String(fd.get("email") ?? "").trim();
+    const password = String(fd.get("password") ?? "");
+    const firstName = String(fd.get("firstName") ?? "").trim();
+    const phone = String(fd.get("phone") ?? "").trim();
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      setPending(false);
+      return;
+    }
+
+    try {
+      const supabase = createBrowserSupabaseClient();
+      const { data, error: signErr } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            phone,
+            email_opt_in: fd.has("emailOptIn"),
+            sms_opt_in: fd.has("smsOptIn"),
+          },
+        },
+      });
+
+      if (signErr) {
+        const msg = signErr.message.toLowerCase().includes("registered")
+          ? "This email may already have an account. Try signing in instead."
+          : signErr.message;
+        setError(msg);
+        setPending(false);
+        return;
+      }
+
+      if (data.session) {
+        const ensured = await ensureProfileAfterAuth();
+        if (!ensured.ok) {
+          setError(ensured.error);
+          setPending(false);
+          return;
+        }
+        router.replace("/quiz");
+        router.refresh();
+        return;
+      }
+
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
+    } catch {
+      setError("Something went wrong. Try again.");
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={action} className="flex w-full max-w-md flex-col gap-5">
-      {state.error ? (
+    <form onSubmit={onSubmit} className="flex w-full max-w-md flex-col gap-5">
+      {error ? (
         <p
-          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-800"
           role="alert"
         >
-          {state.error}
+          {error}
         </p>
       ) : null}
 
@@ -50,6 +113,22 @@ export function GateForm() {
       </div>
 
       <div className="space-y-2">
+        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="password">
+          Password
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          placeholder="At least 6 characters"
+        />
+      </div>
+
+      <div className="space-y-2">
         <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="phone">
           Phone
         </label>
@@ -75,7 +154,6 @@ export function GateForm() {
               defaultChecked
               className="h-4 w-4 rounded border-black/20 accent-[var(--hs-accent)]"
             />
-            <input type="hidden" name="emailOptIn" value="false" />
           </span>
           <span>
             Email me Hidden Spirits news and pairings.{" "}
@@ -91,7 +169,6 @@ export function GateForm() {
               defaultChecked
               className="h-4 w-4 rounded border-black/20 accent-[var(--hs-accent)]"
             />
-            <input type="hidden" name="smsOptIn" value="false" />
           </span>
           <span>
             Text me offers and drops.{" "}
@@ -105,9 +182,16 @@ export function GateForm() {
         disabled={pending}
         className="w-full justify-center bg-[var(--hs-accent)] py-4 text-lg"
       >
-        {pending ? "Unlocking…" : "Unlock My Experience"}
+        {pending ? "Sending code…" : "Create account & send code"}
         <span aria-hidden>→</span>
       </PrimaryButton>
+
+      <p className="text-center text-sm text-[var(--hs-muted)]">
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
+          Sign in
+        </Link>
+      </p>
     </form>
   );
 }

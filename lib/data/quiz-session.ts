@@ -1,6 +1,6 @@
 import "server-only";
+import { getCurrentProfileId } from "@/lib/auth/current-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { getProfileIdFromCookies } from "@/lib/session/cookies";
 
 export interface QuizSessionRow {
   id: string;
@@ -16,7 +16,7 @@ export interface QuizSessionRow {
 export async function getQuizSessionForProfile(
   sessionId: string,
 ): Promise<QuizSessionRow | null> {
-  const profileId = await getProfileIdFromCookies();
+  const profileId = await getCurrentProfileId();
   if (!profileId) return null;
 
   const sb = getSupabaseAdmin();

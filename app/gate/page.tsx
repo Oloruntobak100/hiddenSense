@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/brand/Logo";
-import { GateForm } from "@/components/gate/GateForm";
+import { SignUpForm } from "@/components/gate/SignUpForm";
 import { FixedAmbientBackground } from "@/components/visual/FixedAmbientBackground";
 import { AMBIENT_IMAGES } from "@/lib/media/ambient";
 
@@ -23,14 +23,14 @@ export default async function GatePage() {
           Hello
         </h1>
         <p className="mt-3 text-pretty text-[var(--hs-muted)]">
-          Unlock your HiddenSense™ pairing with first-party details—we never gate without connection.
+          Create your account—verify your email with the code we send—then start your HiddenSense™ pairing.
         </p>
       </div>
 
       <div className="rounded-[2rem] bg-[var(--hs-panel)] p-6 shadow-2xl shadow-black/35 sm:p-8">
-        <GateForm />
+        <SignUpForm />
         <p className="mt-6 text-center text-xs text-[var(--hs-muted)]">
-          By tapping unlock you agree Hidden Spirits may contact you per selections above (demo copy—legal review pending).
+          By creating an account you agree Hidden Spirits may contact you per selections above (demo copy—legal review pending).
         </p>
       </div>
 

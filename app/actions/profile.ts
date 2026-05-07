@@ -1,69 +1,47 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { z } from "zod";
-import { setProfileCookie } from "@/lib/session/cookies";
-import { clearDemoSession } from "@/lib/session/demo";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
-const GateSchema = z.object({
-  firstName: z.string().trim().min(1, "First name is required"),
-  email: z.string().trim().email("Enter a valid email"),
-  phone: z.string().trim().min(8, "Enter a valid phone number"),
-  emailOptIn: z.boolean(),
-  smsOptIn: z.boolean(),
-});
+export type EnsureProfileResult =
+  | { ok: true }
+  | { ok: false; error: string };
 
-export type GateState = { error?: string };
+/**
+ * Upserts `profiles` from the current Supabase session + `user_metadata`
+ * (populated at sign-up). Safe to call after verify OTP or password sign-in.
+ */
+export async function ensureProfileAfterAuth(): Promise<EnsureProfileResult> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
 
-export async function submitGate(
-  _prev: GateState,
-  formData: FormData,
-): Promise<GateState> {
-  const raw = {
-    firstName: String(formData.get("firstName") ?? ""),
-    email: String(formData.get("email") ?? ""),
-    phone: String(formData.get("phone") ?? ""),
-    emailOptIn: formData.get("emailOptIn") === "true",
-    smsOptIn: formData.get("smsOptIn") === "true",
+  if (userErr || !user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const admin = getSupabaseAdmin();
+
+  const payload = {
+    auth_user_id: user.id,
+    first_name: String(meta.first_name ?? "Friend").trim().slice(0, 120) || "Friend",
+    email: user.email ?? "",
+    phone: String(meta.phone ?? "").trim().slice(0, 40),
+    email_opt_in: meta.email_opt_in !== false,
+    sms_opt_in: meta.sms_opt_in !== false,
   };
 
-  let parsed: z.infer<typeof GateSchema>;
-  try {
-    parsed = GateSchema.parse({
-      firstName: raw.firstName,
-      email: raw.email,
-      phone: raw.phone,
-      emailOptIn: raw.emailOptIn,
-      smsOptIn: raw.smsOptIn,
-    });
-  } catch (e) {
-    if (e instanceof z.ZodError) {
-      const first = e.issues[0];
-      return { error: first?.message ?? "Check your inputs" };
-    }
-    return { error: "Something went wrong" };
-  }
+  const { error } = await admin.from("profiles").upsert(payload, {
+    onConflict: "auth_user_id",
+  });
 
-  const sb = getSupabaseAdmin();
-  const { data, error } = await sb
-    .from("profiles")
-    .insert({
-      first_name: parsed.firstName,
-      email: parsed.email,
-      phone: parsed.phone,
-      email_opt_in: parsed.emailOptIn,
-      sms_opt_in: parsed.smsOptIn,
-    })
-    .select("id")
-    .single();
-
-  if (error || !data) {
+  if (error) {
     console.error(error);
-    return { error: "Could not unlock right now — check Supabase config and tables." };
+    return { ok: false, error: "Could not save your profile." };
   }
 
-  await clearDemoSession();
-  await setProfileCookie(data.id);
-  redirect("/quiz");
+  return { ok: true };
 }

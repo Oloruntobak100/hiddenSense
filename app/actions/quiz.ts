@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getProfileIdFromCookies } from "@/lib/session/cookies";
+import { getCurrentProfileId } from "@/lib/auth/current-profile";
 import {
   isDemoSession,
   setDemoResultPayload,
@@ -15,7 +15,7 @@ import { parseAnswerLetter } from "@/lib/mood/maps";
 export type QuizActionState = { ok: false; error: string };
 
 export async function submitQuiz(answersRaw: QuizAnswers): Promise<QuizActionState> {
-  const profileId = await getProfileIdFromCookies();
+  const profileId = await getCurrentProfileId();
   if (!profileId) {
     return { ok: false, error: "Session expired — unlock again." };
   }
