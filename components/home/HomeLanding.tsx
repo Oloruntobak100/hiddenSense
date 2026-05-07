@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 
@@ -88,76 +87,51 @@ export function HomeLanding({ showTesterLogin }: Props) {
         </header>
 
         <main>
-          <section className="mx-auto max-w-6xl px-5 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-20 md:pt-24">
-            <div className="grid items-center gap-10 md:grid-cols-2 md:gap-10 lg:gap-14">
-              {/* Column 1 — hero visual */}
-              <div className="relative mx-auto w-full max-w-[420px] md:order-none md:mx-0 md:max-w-none">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-4 rounded-[2rem] bg-[radial-gradient(ellipse_at_50%_50%,rgba(37,99,235,0.22),transparent_68%)] blur-2xl md:-inset-6"
-                />
-                <div className="relative overflow-hidden rounded-3xl border border-white/[0.12] bg-black/25 shadow-[0_28px_80px_-24px_rgba(0,0,0,0.85)] ring-1 ring-white/[0.06]">
-                  <div className="relative aspect-[4/5] w-full sm:aspect-[3/4]">
-                    <Image
-                      src="/hero-app-collage.png"
-                      alt="HiddenSense app experience on mobile devices"
-                      fill
-                      priority
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-contain object-center p-3 sm:p-4"
-                    />
-                  </div>
-                </div>
-              </div>
+          <section className="mx-auto max-w-5xl px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:pt-24">
+            <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              Mood-led pairings • Hidden Spirits
+            </p>
 
-              {/* Column 2 — headline & CTAs */}
-              <div className="flex flex-col text-center md:text-left">
-                <p className="inline-flex items-center justify-center gap-2 self-center rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] sm:text-[11px] md:self-start md:justify-start">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                  </span>
-                  Mood-led pairings • Hidden Spirits
-                </p>
+            <h1 className="font-[family-name:var(--font-display)] mt-8 text-[clamp(1.65rem,5vw,3.35rem)] font-extrabold uppercase leading-[1.08] tracking-[0.06em]">
+              <span className="block text-white">How you feel</span>
+              <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
+                shapes every pour
+              </span>
+              <span className="mt-2 block text-white/95">&amp; every bite</span>
+            </h1>
 
-                <h1 className="font-[family-name:var(--font-display)] mt-6 text-[clamp(1.35rem,4.2vw,2.65rem)] font-extrabold uppercase leading-[1.12] tracking-[0.05em] sm:mt-7 lg:text-[clamp(1.5rem,3.6vw,2.85rem)]">
-                  <span className="block text-white">How you feel</span>
-                  <span className="mt-1.5 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent sm:mt-2">
-                    shapes every pour
-                  </span>
-                  <span className="mt-1.5 block text-white/95 sm:mt-2">&amp; every bite</span>
-                </h1>
+            <p className="mx-auto mt-8 max-w-2xl text-pretty text-base leading-relaxed text-white/78 sm:text-lg">
+              HiddenSense™ translates the moment—five quick taps—into cocktail and plate inspiration from Hidden Spirits.
+              Curated, human-feeling, built for right now.
+            </p>
 
-                <p className="mx-auto mt-7 max-w-xl text-pretty text-base leading-relaxed text-white/78 sm:text-[17px] md:mx-0">
-                  HiddenSense™ translates the moment—five quick taps—into cocktail and plate inspiration from Hidden Spirits.
-                  Curated, human-feeling, built for right now.
-                </p>
-
-                <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row md:justify-start">
-                  <Link
-                    href="/gate"
-                    className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
-                  >
-                    <span aria-hidden className="text-lg leading-none">
-                      ⚡
-                    </span>
-                    Get started
-                    <span aria-hidden className="text-lg">
-                      →
-                    </span>
-                  </Link>
-                  <a
-                    href="#how-it-works"
-                    className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.04] px-8 py-3.5 text-[15px] font-semibold text-white/90 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.08] sm:w-auto"
-                  >
-                    How it works
-                  </a>
-                </div>
-              </div>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+              <Link
+                href="/gate"
+                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
+              >
+                <span aria-hidden className="text-lg leading-none">
+                  ⚡
+                </span>
+                Get started
+                <span aria-hidden className="text-lg">
+                  →
+                </span>
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.04] px-8 py-3.5 text-[15px] font-semibold text-white/90 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.08] sm:w-auto"
+              >
+                How it works
+              </a>
             </div>
 
             {/* Product preview strip */}
-            <div className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-2xl border border-[var(--hs-accent)]/35 bg-[#0c0b12]/85 p-1 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur-md sm:mt-16">
+            <div className="mx-auto mt-16 max-w-4xl overflow-hidden rounded-2xl border border-[var(--hs-accent)]/35 bg-[#0c0b12]/85 p-1 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur-md">
               <div className="rounded-[14px] border border-white/[0.07] bg-gradient-to-b from-white/[0.06] to-transparent px-4 py-3 sm:px-5">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 text-left">
                   <div className="flex items-center gap-2">
