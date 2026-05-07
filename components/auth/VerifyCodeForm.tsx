@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { ensureProfileAfterAuth } from "@/app/actions/profile";
+import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 type Props = {
@@ -21,46 +21,55 @@ export function VerifyCodeForm({ email }: Props) {
     setError(null);
     setPending(true);
 
-    const fd = new FormData(e.currentTarget);
-    const raw = String(fd.get("code") ?? "");
-    const token = raw.trim().replace(/\s+/g, "");
-
-    if (!token) {
-      setError("Paste the verification code from your email.");
-      setPending(false);
-      return;
-    }
-
     try {
+      const fd = new FormData(e.currentTarget);
+      const raw = String(fd.get("code") ?? "");
+      const token = raw.trim().replace(/\s+/g, "");
+
+      if (!token) {
+        setError("Paste the verification code from your email.");
+        return;
+      }
+
       const supabase = createBrowserSupabaseClient();
 
-      let authErr = (
-        await supabase.auth.verifyOtp({
-          email,
-          token,
-          type: "signup",
-        })
-      ).error;
+      let otpResult = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "signup",
+      });
 
-      if (authErr) {
-        const second = await supabase.auth.verifyOtp({
+      if (otpResult.error) {
+        otpResult = await supabase.auth.verifyOtp({
           email,
           token,
           type: "email",
         });
-        authErr = second.error;
       }
 
-      if (authErr) {
-        setError(authErr.message);
-        setPending(false);
+      if (otpResult.error) {
+        setError(otpResult.error.message);
         return;
       }
 
-      const ensured = await ensureProfileAfterAuth();
-      if (!ensured.ok) {
-        setError(ensured.error);
-        setPending(false);
+      let accessToken = otpResult.data.session?.access_token;
+      if (!accessToken) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        accessToken = session?.access_token;
+      }
+
+      if (!accessToken) {
+        setError(
+          "Could not read your session after verification. Try signing in from the login page.",
+        );
+        return;
+      }
+
+      const synced = await syncProfileWithAccessToken(accessToken);
+      if (!synced.ok) {
+        setError(synced.error);
         return;
       }
 
@@ -69,6 +78,7 @@ export function VerifyCodeForm({ email }: Props) {
     } catch (err) {
       console.error("[HiddenSense verify]", err);
       setError("Verification failed. Try again.");
+    } finally {
       setPending(false);
     }
   }

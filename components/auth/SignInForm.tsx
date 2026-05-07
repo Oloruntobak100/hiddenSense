@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { ensureProfileAfterAuth } from "@/app/actions/profile";
+import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 export function SignInForm() {
@@ -33,14 +33,21 @@ export function SignInForm() {
 
       if (signErr) {
         setError(signErr.message);
-        setPending(false);
         return;
       }
 
-      const ensured = await ensureProfileAfterAuth();
-      if (!ensured.ok) {
-        setError(ensured.error);
-        setPending(false);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        setError("Could not establish session. Try again.");
+        return;
+      }
+
+      const synced = await syncProfileWithAccessToken(accessToken);
+      if (!synced.ok) {
+        setError(synced.error);
         return;
       }
 
@@ -49,6 +56,7 @@ export function SignInForm() {
       router.refresh();
     } catch {
       setError("Sign-in failed. Try again.");
+    } finally {
       setPending(false);
     }
   }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { ensureProfileAfterAuth } from "@/app/actions/profile";
+import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 export function SignUpForm() {
@@ -23,13 +23,12 @@ export function SignUpForm() {
     const firstName = String(fd.get("firstName") ?? "").trim();
     const phone = String(fd.get("phone") ?? "").trim();
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      setPending(false);
-      return;
-    }
-
     try {
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return;
+      }
+
       const supabase = createBrowserSupabaseClient();
       const { data, error: signErr } = await supabase.auth.signUp({
         email,
@@ -49,15 +48,13 @@ export function SignUpForm() {
           ? "This email may already have an account. Try signing in instead."
           : signErr.message;
         setError(msg);
-        setPending(false);
         return;
       }
 
-      if (data.session) {
-        const ensured = await ensureProfileAfterAuth();
-        if (!ensured.ok) {
-          setError(ensured.error);
-          setPending(false);
+      if (data.session?.access_token) {
+        const synced = await syncProfileWithAccessToken(data.session.access_token);
+        if (!synced.ok) {
+          setError(synced.error);
           return;
         }
         router.replace("/quiz");
@@ -68,6 +65,7 @@ export function SignUpForm() {
       router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch {
       setError("Something went wrong. Try again.");
+    } finally {
       setPending(false);
     }
   }
