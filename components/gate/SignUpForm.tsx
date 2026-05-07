@@ -7,6 +7,11 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
+const labelCls =
+  "block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-muted)]";
+const inputCls =
+  "w-full rounded-xl border border-black/[0.09] bg-white px-3.5 py-2.5 text-[15px] leading-snug text-[var(--hs-ink)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] outline-none transition-[border-color,box-shadow] placeholder:text-black/35 focus:border-[var(--hs-accent)] focus:ring-2 focus:ring-[var(--hs-accent)]/18";
+
 export function SignUpForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -71,18 +76,18 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex w-full max-w-md flex-col gap-3">
+    <form onSubmit={onSubmit} className="relative flex w-full flex-col gap-4">
       {error ? (
         <p
-          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-800"
+          className="rounded-xl border border-red-500/35 bg-red-500/[0.09] px-3.5 py-2.5 text-sm text-red-900"
           role="alert"
         >
           {error}
         </p>
       ) : null}
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="firstName">
+      <div className="space-y-1.5">
+        <label className={labelCls} htmlFor="firstName">
           First name
         </label>
         <input
@@ -90,13 +95,13 @@ export function SignUpForm() {
           name="firstName"
           autoComplete="given-name"
           required
-          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none ring-0 focus:border-[var(--hs-accent)]"
+          className={inputCls}
           placeholder="Alex"
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="email">
+      <div className="space-y-1.5">
+        <label className={labelCls} htmlFor="email">
           Email
         </label>
         <input
@@ -105,13 +110,13 @@ export function SignUpForm() {
           type="email"
           autoComplete="email"
           required
-          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className={inputCls}
           placeholder="you@example.com"
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="password">
+      <div className="space-y-1.5">
+        <label className={labelCls} htmlFor="password">
           Password
         </label>
         <input
@@ -121,13 +126,13 @@ export function SignUpForm() {
           autoComplete="new-password"
           required
           minLength={6}
-          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className={inputCls}
           placeholder="At least 6 characters"
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="phone">
+      <div className="space-y-1.5">
+        <label className={labelCls} htmlFor="phone">
           Phone
         </label>
         <input
@@ -136,14 +141,14 @@ export function SignUpForm() {
           type="tel"
           autoComplete="tel"
           required
-          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className={inputCls}
           placeholder="+1 555 123 4567"
         />
       </div>
 
-      <fieldset className="space-y-2 rounded-xl border border-black/5 bg-black/[0.02] p-3">
+      <fieldset className="space-y-2.5 rounded-2xl border border-[var(--hs-accent)]/[0.12] bg-gradient-to-b from-[var(--hs-accent)]/[0.05] to-transparent p-3.5">
         <legend className="sr-only">Marketing preferences</legend>
-        <label className="flex cursor-pointer items-start gap-2 text-xs text-[var(--hs-ink)] sm:text-sm">
+        <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-snug text-[var(--hs-ink)] sm:text-[13px]">
           <span className="mt-0.5 flex flex-col gap-1">
             <input
               type="checkbox"
@@ -158,7 +163,7 @@ export function SignUpForm() {
             <span className="text-[var(--hs-muted)]">(Recommended)</span>
           </span>
         </label>
-        <label className="flex cursor-pointer items-start gap-2 text-xs text-[var(--hs-ink)] sm:text-sm">
+        <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-snug text-[var(--hs-ink)] sm:text-[13px]">
           <span className="mt-0.5 flex flex-col gap-1">
             <input
               type="checkbox"
@@ -178,14 +183,17 @@ export function SignUpForm() {
       <PrimaryButton
         type="submit"
         disabled={pending}
-        className="self-center bg-[var(--hs-accent)] px-5 py-2 text-sm font-semibold"
+        className="mt-1 w-full justify-center rounded-xl bg-[var(--hs-accent)] py-3 text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(37,99,235,0.55)] transition-[transform,box-shadow] motion-safe:active:scale-[0.99]"
       >
         {pending ? "Please wait…" : "Create Account"}
       </PrimaryButton>
 
-      <p className="text-center text-xs text-[var(--hs-muted)] sm:text-sm">
+      <p className="text-center text-[13px] text-[var(--hs-muted)]">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
+        <Link
+          href="/login"
+          className="font-semibold text-[var(--hs-accent)] underline-offset-[3px] hover:underline"
+        >
           Sign in
         </Link>
       </p>

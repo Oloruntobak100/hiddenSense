@@ -1,0 +1,262 @@
+import Link from "next/link";
+import { LogoMark, Wordmark } from "@/components/brand/Logo";
+
+type Props = {
+  showTesterLogin: boolean;
+};
+
+export function HomeLanding({ showTesterLogin }: Props) {
+  return (
+    <>
+      {/* Tech overlay: grid + scanlines + network (above photo, below UI) */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[5] bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] bg-[length:56px_56px] [mask-image:radial-gradient(ellipse_85%_65%_at_50%_38%,black_20%,transparent_72%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[5] opacity-[0.07] [background:repeating-linear-gradient(0deg,rgba(255,255,255,0.09)_0px,rgba(255,255,255,0.09)_1px,transparent_1px,transparent_3px)]"
+      />
+      <svg
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[5] h-full w-full opacity-[0.14] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_42%,black,transparent)]"
+      >
+        <defs>
+          <linearGradient id="hs-net" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#7c3aed" />
+          </linearGradient>
+        </defs>
+        <g stroke="url(#hs-net)" strokeWidth="0.6" fill="none">
+          <path d="M12% 38% L28% 22% L44% 36% L62% 18% L78% 34%" />
+          <path d="M18% 62% L34% 48% L52% 58% L70% 44% L88% 56%" />
+          <path d="M28% 22% L34% 48%" />
+          <path d="M62% 18% L70% 44%" />
+          <path d="M44% 36% L52% 58%" />
+        </g>
+        <g fill="#2563eb">
+          <circle cx="12%" cy="38%" r="1.8" />
+          <circle cx="28%" cy="22%" r="2" />
+          <circle cx="44%" cy="36%" r="1.6" />
+          <circle cx="62%" cy="18%" r="2" />
+          <circle cx="78%" cy="34%" r="1.6" />
+          <circle cx="18%" cy="62%" r="1.5" />
+          <circle cx="52%" cy="58%" r="2.2" />
+          <circle cx="88%" cy="56%" r="1.6" />
+        </g>
+      </svg>
+
+      <div className="relative z-10">
+        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/75 backdrop-blur-xl">
+          <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6">
+            <Link href="/" className="flex items-center gap-3 text-white transition hover:opacity-90">
+              <LogoMark className="h-10 w-8 object-contain sm:h-11 sm:w-9" />
+              <Wordmark className="font-[family-name:var(--font-display)] text-[13px] font-semibold uppercase tracking-[0.18em] text-white sm:text-sm" />
+            </Link>
+
+            <div className="hidden items-center gap-10 md:flex">
+              <a
+                href="#features"
+                className="text-[13px] font-medium text-white/65 transition hover:text-white"
+              >
+                Features
+              </a>
+              <a
+                href="#how-it-works"
+                className="text-[13px] font-medium text-white/65 transition hover:text-white"
+              >
+                How it works
+              </a>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <Link
+                href="/login"
+                className="text-[12px] font-semibold text-[var(--hs-accent)] transition hover:text-white sm:text-[13px]"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/gate"
+                className="rounded-lg bg-[var(--hs-accent)] px-4 py-2.5 text-[12px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_0_22px_-4px_rgba(37,99,235,0.55)] transition hover:brightness-110 sm:px-5 sm:text-[13px]"
+              >
+                Get started
+              </Link>
+            </div>
+          </nav>
+        </header>
+
+        <main>
+          <section className="mx-auto max-w-5xl px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:pt-24">
+            <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              Mood-led pairings • Hidden Spirits
+            </p>
+
+            <h1 className="font-[family-name:var(--font-display)] mt-8 text-[clamp(1.65rem,5vw,3.35rem)] font-extrabold uppercase leading-[1.08] tracking-[0.06em]">
+              <span className="block text-white">How you feel</span>
+              <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
+                shapes every pour
+              </span>
+              <span className="mt-2 block text-white/95">&amp; every bite</span>
+            </h1>
+
+            <p className="mx-auto mt-8 max-w-2xl text-pretty text-base leading-relaxed text-white/78 sm:text-lg">
+              HiddenSense™ translates the moment—five quick taps—into cocktail and plate inspiration from Hidden Spirits.
+              Curated, human-feeling, built for right now.
+            </p>
+
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+              <Link
+                href="/gate"
+                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
+              >
+                <span aria-hidden className="text-lg leading-none">
+                  ⚡
+                </span>
+                Get started
+                <span aria-hidden className="text-lg">
+                  →
+                </span>
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.04] px-8 py-3.5 text-[15px] font-semibold text-white/90 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.08] sm:w-auto"
+              >
+                How it works
+              </a>
+            </div>
+
+            {/* Product preview strip */}
+            <div className="mx-auto mt-16 max-w-4xl overflow-hidden rounded-2xl border border-[var(--hs-accent)]/35 bg-[#0c0b12]/85 p-1 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur-md">
+              <div className="rounded-[14px] border border-white/[0.07] bg-gradient-to-b from-white/[0.06] to-transparent px-4 py-3 sm:px-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="font-[family-name:var(--font-display)] text-[11px] font-bold uppercase tracking-[0.2em] text-white/90">
+                      Pairing studio
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-400/95">
+                    ● Live preview
+                  </span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {[
+                    { label: "Moods mapped", value: "12+", tone: "text-sky-300" },
+                    { label: "Pairings crafted", value: "∞", tone: "text-violet-300" },
+                    { label: "Spirits library", value: "Vault", tone: "text-fuchsia-300/95" },
+                    { label: "Time to tap in", value: "< 1 min", tone: "text-emerald-300" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-xl border border-white/[0.06] bg-black/35 px-3 py-3 text-left sm:py-3.5"
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">{item.label}</p>
+                      <p className={`font-[family-name:var(--font-display)] mt-1.5 text-xl font-bold ${item.tone}`}>
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="features" className="scroll-mt-28 border-t border-white/[0.06] bg-black/20 py-16 sm:py-20">
+            <div className="mx-auto max-w-6xl px-5 sm:px-6">
+              <h2 className="font-[family-name:var(--font-display)] text-center text-xl font-bold uppercase tracking-[0.18em] text-white sm:text-2xl">
+                Built for the moment
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-center text-sm text-white/60">
+                Signal from mood. Output from Hidden Spirits—cocktails and plates you can actually order toward.
+              </p>
+              <ul className="mt-12 grid gap-6 md:grid-cols-3">
+                {[
+                  {
+                    title: "Mood quiz",
+                    body: "Five taps capture tone and tension—no essays, no fluff.",
+                  },
+                  {
+                    title: "Curated pairings",
+                    body: "Cocktail + food suggestions tuned to how you feel tonight.",
+                  },
+                  {
+                    title: "Hidden Spirits",
+                    body: "Born from the vault—premium cues without the pretension.",
+                  },
+                ].map((card) => (
+                  <li
+                    key={card.title}
+                    className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm transition hover:border-[var(--hs-accent)]/35"
+                  >
+                    <h3 className="font-[family-name:var(--font-display)] text-sm font-bold uppercase tracking-[0.14em] text-[var(--hs-accent)]">
+                      {card.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-white/72">{card.body}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          <section id="how-it-works" className="scroll-mt-28 py-16 sm:py-20">
+            <div className="mx-auto max-w-6xl px-5 sm:px-6">
+              <h2 className="font-[family-name:var(--font-display)] text-center text-xl font-bold uppercase tracking-[0.18em] text-white sm:text-2xl">
+                How it works
+              </h2>
+              <ol className="mx-auto mt-12 grid max-w-3xl gap-8">
+                {[
+                  "Create your account—we verify email so your pairing stays yours.",
+                  "Take the five-tap quiz: fast, intuitive, impossible to overthink.",
+                  "Unlock your HiddenSense™ pairing and step into the evening you want.",
+                ].map((step, i) => (
+                  <li key={step} className="flex gap-5 text-left">
+                    <span className="font-[family-name:var(--font-display)] flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--hs-accent)]/40 bg-[var(--hs-accent)]/15 text-sm font-bold text-[var(--hs-accent)]">
+                      {i + 1}
+                    </span>
+                    <p className="pt-1.5 text-sm leading-relaxed text-white/75 sm:text-base">{step}</p>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-12 flex justify-center">
+                <Link
+                  href="/gate"
+                  className="rounded-xl bg-[var(--hs-accent)] px-10 py-3.5 text-[15px] font-semibold text-white shadow-[0_14px_36px_-14px_rgba(37,99,235,0.6)] transition hover:brightness-110"
+                >
+                  Get started
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          <footer className="border-t border-white/[0.08] bg-[#09080f]/80 py-12 backdrop-blur-md">
+            <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-6">
+              <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
+                <Link href="/gate" className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline">
+                  Create account
+                </Link>
+                <Link href="/login" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
+                  Sign in
+                </Link>
+                <Link href="/" className="text-white/55 underline-offset-4 hover:text-white/90 hover:underline">
+                  Home
+                </Link>
+              </div>
+              <p className="text-xs text-white/40">
+                HiddenSense™ • Hidden Spirits • MVP prototype
+              </p>
+              {showTesterLogin ? (
+                <Link href="/login" className="text-xs text-white/55 underline-offset-4 hover:text-white hover:underline">
+                  Tester login (skip gate)
+                </Link>
+              ) : null}
+            </div>
+          </footer>
+        </main>
+      </div>
+    </>
+  );
+}
