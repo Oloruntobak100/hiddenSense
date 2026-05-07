@@ -66,7 +66,8 @@ export function VerifyCodeForm({ email }: Props) {
 
       router.replace("/quiz");
       router.refresh();
-    } catch {
+    } catch (err) {
+      console.error("[HiddenSense verify]", err);
       setError("Verification failed. Try again.");
       setPending(false);
     }
