@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HiddenSense™ MVP (prototype)
 
-## Getting Started
+Web-first mood funnel for **Hidden Spirits**: gated profile capture → five tap questions → deterministic mood scoring → curated cocktail + pairing → checkout stub → required feedback captured in Supabase.
 
-First, run the development server:
+## Stack
+
+Next.js App Router • React • Tailwind v4 • Supabase Postgres (writes via server-only **service role** + httpOnly `hiddensense_profile_id` stub cookie • Vercel-ready.
+
+## Prerequisites
+
+- Node.js 20+
+- A Supabase project (optional during `next dev` thanks to offline demo)
+
+## Tester login (skip gate)
+
+- In **development** (`next dev`), visit [http://localhost:3000/login](http://localhost:3000/login) or use **“Tester login”** on the home page.
+- **With Supabase configured:** creates a throwaway `profiles` row and runs the full funnel (quiz rows in the DB).
+- **Without Supabase (dev only by default):** falls back to **offline demo** cookies so you can still polish the quiz UI; results open at `/result/demo` (no DB persistence).
+- **`/logout`** clears profile + demo cookies.
+- For **production builds**, set `ENABLE_QUICK_LOGIN=true` to expose `/login`, and `ENABLE_OFFLINE_DEMO=true` only on private sandboxes (never public production).
+
+## Setup
+
+1. Copy environment template and fill Supabase secrets when you want real persistence:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Run the migration in the Supabase SQL editor:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`supabase/migrations/001_init.sql`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Leave RLS disabled for this prototype, or tighten policies before production (see plan for OTP/auth migration notes).
 
-## Learn More
+3. Install and run locally:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Ambient photography
 
-## Deploy on Vercel
+Premium food & drink imagery is wired as **fixed backgrounds** with **translucent violet / amber scrims** layered on top (`components/visual/FixedAmbientBackground.tsx`), so the vault gradient stays legible. URLs live in [`lib/media/ambient.ts`](lib/media/ambient.ts) (Unsplash); override with your own files under `public/media/` and point those constants to `/media/....` if you prefer fully self-hosted assets.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command        | Purpose                |
+|----------------|------------------------|
+| `npm run dev`  | Turbopack dev server   |
+| `npm run build`| Production bundle      |
+| `npm run start`| Serve production build |
+| `npm run lint` | ESLint                 |
+| `npm run test` | Vitest (mood engine)   |
+
+## Environment variables
+
+| Key | Purpose |
+|-----|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only** writes (never expose publicly) |
+| `NEXT_PUBLIC_SITE_URL` | Absolute site root for shared links |
+| `NEXT_PUBLIC_CHECKOUT_BASE_URL` | Stub storefront URL; UTMs plus `mood`, `session_id`, `profile_id` query params are appended |
+| `ENABLE_QUICK_LOGIN` | Set `true` to allow `/login` outside development |
+| `ENABLE_OFFLINE_DEMO` | Set `true` to permit Supabase-free UI runs (e.g. staging); dev mode already enables this fallback |
+
+If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is used so UI keeps working offline.
+
+## User flow
+
+1. `/gate` collects first name, email, phone + opt-ins, inserts into `profiles`, sets the stub profile cookie (`hiddensense_profile_id`).
+2. `/quiz` submits answers through `submitQuiz`; engine stores `quiz_sessions`.
+3. `/result/[sessionId]` renders catalog pairing + commerce CTA + share + recipe modal.
+4. `/feedback/[sessionId]` persists `feedback`; `/thanks` closes the loop.
+
+Middleware blocks `/quiz`, `/result/*`, `/feedback/*` until the stub cookie exists.
+
+## Auth note
+
+Production should replace the cookie stub with Supabase OTP and map `profiles.auth_user_id`, then revoke broad service-role access from anonymous flows.
