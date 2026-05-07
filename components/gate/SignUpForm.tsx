@@ -71,7 +71,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex w-full max-w-md flex-col gap-5">
+    <form onSubmit={onSubmit} className="flex w-full max-w-md flex-col gap-3">
       {error ? (
         <p
           className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-800"
@@ -90,7 +90,7 @@ export function SignUpForm() {
           name="firstName"
           autoComplete="given-name"
           required
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none ring-0 focus:border-[var(--hs-accent)]"
+          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none ring-0 focus:border-[var(--hs-accent)]"
           placeholder="Alex"
         />
       </div>
@@ -105,7 +105,7 @@ export function SignUpForm() {
           type="email"
           autoComplete="email"
           required
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
           placeholder="you@example.com"
         />
       </div>
@@ -121,7 +121,7 @@ export function SignUpForm() {
           autoComplete="new-password"
           required
           minLength={6}
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
           placeholder="At least 6 characters"
         />
       </div>
@@ -136,14 +136,14 @@ export function SignUpForm() {
           type="tel"
           autoComplete="tel"
           required
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
           placeholder="+1 555 123 4567"
         />
       </div>
 
-      <fieldset className="space-y-3 rounded-2xl border border-black/5 bg-black/[0.02] p-4">
+      <fieldset className="space-y-2 rounded-xl border border-black/5 bg-black/[0.02] p-3">
         <legend className="sr-only">Marketing preferences</legend>
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--hs-ink)]">
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-[var(--hs-ink)] sm:text-sm">
           <span className="mt-0.5 flex flex-col gap-1">
             <input
               type="checkbox"
@@ -158,7 +158,7 @@ export function SignUpForm() {
             <span className="text-[var(--hs-muted)]">(Recommended)</span>
           </span>
         </label>
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--hs-ink)]">
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-[var(--hs-ink)] sm:text-sm">
           <span className="mt-0.5 flex flex-col gap-1">
             <input
               type="checkbox"
@@ -178,13 +178,12 @@ export function SignUpForm() {
       <PrimaryButton
         type="submit"
         disabled={pending}
-        className="w-full justify-center bg-[var(--hs-accent)] py-4 text-lg"
+        className="self-center bg-[var(--hs-accent)] px-5 py-2 text-sm font-semibold"
       >
-        {pending ? "Sending code…" : "Create account & send code"}
-        <span aria-hidden>→</span>
+        {pending ? "Please wait…" : "Create Account"}
       </PrimaryButton>
 
-      <p className="text-center text-sm text-[var(--hs-muted)]">
+      <p className="text-center text-xs text-[var(--hs-muted)] sm:text-sm">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
           Sign in
