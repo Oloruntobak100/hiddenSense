@@ -5,13 +5,6 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 
-const moodTeasers = [
-  "Soft Life Loading",
-  "Good Vibes Only",
-  "Protecting My Peace",
-  "Ready to TurnUp",
-];
-
 type Props = {
   displayName: string;
   isAdmin: boolean;
@@ -146,22 +139,6 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
           <p className="mt-3 text-xs tracking-wide text-white/58">Takes less than 60 seconds.</p>
         </motion.div>
       </motion.section>
-
-      <motion.div
-        className="pointer-events-none absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 flex max-w-[min(100vw-2rem,22rem)] -translate-x-1/2 flex-wrap justify-center gap-2 px-2 sm:bottom-7 sm:max-w-none sm:flex-nowrap sm:gap-2.5 sm:px-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.7 }}
-      >
-        {moodTeasers.map((label) => (
-          <span
-            key={label}
-            className="rounded-full border border-white/14 bg-white/[0.03] px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-white/45"
-          >
-            {label}
-          </span>
-        ))}
-      </motion.div>
     </main>
   );
 }
