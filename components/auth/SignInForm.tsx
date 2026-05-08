@@ -7,7 +7,12 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
-export function SignInForm() {
+type SignInFormProps = {
+  showSwitchLink?: boolean;
+  switchHref?: string;
+};
+
+export function SignInForm({ showSwitchLink = true, switchHref = "/login?mode=signup" }: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") ?? "/quiz";
@@ -109,12 +114,14 @@ export function SignInForm() {
         <span aria-hidden>→</span>
       </PrimaryButton>
 
-      <p className="text-center text-sm text-[var(--hs-muted)]">
-        New here?{" "}
-        <Link href="/gate" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
-          Create an account
-        </Link>
-      </p>
+      {showSwitchLink ? (
+        <p className="text-center text-sm text-[var(--hs-muted)]">
+          New here?{" "}
+          <Link href={switchHref} className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
+            Create an account
+          </Link>
+        </p>
+      ) : null}
     </form>
   );
 }

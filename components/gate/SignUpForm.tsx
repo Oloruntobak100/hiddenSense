@@ -12,7 +12,12 @@ const labelCls =
 const inputCls =
   "w-full rounded-xl border border-black/[0.09] bg-white px-3.5 py-2.5 text-[15px] leading-snug text-[var(--hs-ink)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] outline-none transition-[border-color,box-shadow] placeholder:text-black/35 focus:border-[var(--hs-accent)] focus:ring-2 focus:ring-[var(--hs-accent)]/18";
 
-export function SignUpForm() {
+type SignUpFormProps = {
+  showSwitchLink?: boolean;
+  switchHref?: string;
+};
+
+export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: SignUpFormProps = {}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -188,15 +193,17 @@ export function SignUpForm() {
         {pending ? "Please wait…" : "Create Account"}
       </PrimaryButton>
 
-      <p className="text-center text-[13px] text-[var(--hs-muted)]">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="font-semibold text-[var(--hs-accent)] underline-offset-[3px] hover:underline"
-        >
-          Sign in
-        </Link>
-      </p>
+      {showSwitchLink ? (
+        <p className="text-center text-[13px] text-[var(--hs-muted)]">
+          Already have an account?{" "}
+          <Link
+            href={switchHref}
+            className="font-semibold text-[var(--hs-accent)] underline-offset-[3px] hover:underline"
+          >
+            Sign in
+          </Link>
+        </p>
+      ) : null}
     </form>
   );
 }

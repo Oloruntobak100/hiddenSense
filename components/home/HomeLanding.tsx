@@ -35,12 +35,6 @@ export function HomeLanding({ showTesterLogin }: Props) {
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <Link
                 href="/login"
-                className="text-[12px] font-semibold text-[var(--hs-accent)] transition hover:text-white sm:text-[13px]"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/gate"
                 className="rounded-lg bg-[var(--hs-accent)] px-4 py-2.5 text-[12px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_0_22px_-4px_rgba(37,99,235,0.55)] transition hover:brightness-110 sm:px-5 sm:text-[13px]"
               >
                 Get started
@@ -81,7 +75,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row sm:gap-4">
               <Link
-                href="/gate"
+                href="/login"
                 className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl bg-[var(--hs-accent)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
               >
                 <span aria-hidden className="text-base leading-none">
@@ -194,7 +188,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
               </ol>
               <div className="mt-12 flex justify-center">
                 <Link
-                  href="/gate"
+                  href="/login"
                   className="rounded-xl bg-[var(--hs-accent)] px-10 py-3.5 text-[15px] font-semibold text-white shadow-[0_14px_36px_-14px_rgba(37,99,235,0.6)] transition hover:brightness-110"
                 >
                   Get started
@@ -206,8 +200,8 @@ export function HomeLanding({ showTesterLogin }: Props) {
           <footer className="border-t border-white/[0.08] bg-[#09080f]/80 py-12 backdrop-blur-md">
             <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-6">
               <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
-                <Link href="/gate" className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline">
-                  Create account
+                <Link href="/login" className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline">
+                  Get started
                 </Link>
                 <Link href="/login" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
                   Sign in

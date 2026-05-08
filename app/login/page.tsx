@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/Logo";
-import { SignInForm } from "@/components/auth/SignInForm";
+import { AuthTabs } from "@/components/auth/AuthTabs";
 import { TesterLoginForm } from "@/components/login/TesterLoginForm";
 import { FixedAmbientBackground } from "@/components/visual/FixedAmbientBackground";
 import { isOfflineDemoEnabled, isTesterUiEnabled } from "@/lib/features/tester-access";
@@ -17,24 +17,24 @@ export default function LoginPage() {
         preset="login"
         objectPosition="center 60%"
       />
-      <main className="relative z-10 mx-auto flex min-h-[100dvh] max-w-lg flex-col justify-center px-6 py-12">
-        <div className="mb-8 flex justify-center">
+      <main className="relative z-10 mx-auto flex min-h-[100dvh] max-w-lg flex-col justify-center px-5 py-10 sm:px-6 sm:py-12">
+        <div className="mb-6 flex justify-center">
           <LogoMark />
         </div>
-        <p className="text-center font-[family-name:var(--font-serif)] text-3xl font-semibold tracking-tight text-[var(--hs-accent-strong)]">
-          Welcome back
+        <p className="text-center font-[family-name:var(--font-serif)] text-3xl font-semibold tracking-tight text-[var(--hs-accent-strong)] sm:text-[2.1rem]">
+          HiddenSense Access
         </p>
         <p className="mt-3 text-center text-sm text-[var(--hs-muted)]">
-          Sign in with the email and password you used to create your account.
+          Sign in or create your account to unlock your mood pairing experience.
         </p>
 
-        <div className="mx-auto mt-10 w-full max-w-md rounded-[2rem] bg-[var(--hs-panel)] p-8 shadow-2xl shadow-black/35">
+        <div className="mt-8">
           <Suspense
             fallback={
-              <p className="text-center text-sm text-[var(--hs-muted)]">Loading sign-in…</p>
+              <p className="text-center text-sm text-[var(--hs-muted)]">Loading access panel…</p>
             }
           >
-            <SignInForm />
+            <AuthTabs />
           </Suspense>
         </div>
 
@@ -55,9 +55,6 @@ export default function LoginPage() {
         ) : null}
 
         <div className="mt-10 space-y-3 text-center text-sm">
-          <Link href="/gate" className="block font-medium text-white/85 underline-offset-4 hover:underline">
-            Create an account
-          </Link>
           <Link href="/logout" className="block text-[var(--hs-muted)] underline-offset-4 hover:text-white hover:underline">
             Sign out & clear session
           </Link>
