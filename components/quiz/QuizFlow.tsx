@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { submitQuiz } from "@/app/actions/quiz";
 import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
@@ -56,9 +56,12 @@ export function QuizFlow() {
   const [stage, setStage] = useState<"overview" | "questions">("overview");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, ScaleValue>>({});
+  const [softSelected, setSoftSelected] = useState<ScaleValue | null>(null);
+  const [isAdvancing, setIsAdvancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [startedAt] = useState(() => Date.now());
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current = QUESTIONS[index];
   const sectionMeta = SECTIONS[current.section];
@@ -68,24 +71,48 @@ export function QuizFlow() {
   const selected = answers[current.id];
 
   const handleSelect = (value: ScaleValue) => {
-    if (pending) return;
+    if (pending || isAdvancing) return;
+    if (feedbackTimerRef.current) {
+      clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = null;
+    }
     setError(null);
+    setIsAdvancing(true);
+    setSoftSelected(value);
     const nextAnswers = { ...answers, [current.id]: value };
     setAnswers(nextAnswers);
 
-    if (isFinalQuestion) {
-      submitMoodCalibration(nextAnswers);
-      return;
-    }
-    setIndex((i) => i + 1);
+    feedbackTimerRef.current = setTimeout(() => {
+      setSoftSelected(null);
+      setIsAdvancing(false);
+      if (isFinalQuestion) {
+        submitMoodCalibration(nextAnswers);
+        return;
+      }
+      setIndex((i) => i + 1);
+    }, 180);
   };
 
   const goPrevious = () => {
     if (pending) return;
+    if (feedbackTimerRef.current) {
+      clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = null;
+    }
+    setSoftSelected(null);
+    setIsAdvancing(false);
     if (index > 0) {
       setIndex((i) => i - 1);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) {
+        clearTimeout(feedbackTimerRef.current);
+      }
+    };
+  }, []);
 
   const submitMoodCalibration = (sourceAnswers: Record<string, ScaleValue>) => {
     const payload = buildQuizPayload(sourceAnswers);
@@ -218,12 +245,12 @@ export function QuizFlow() {
                           key={value}
                           type="button"
                           onClick={() => handleSelect(value)}
-                          disabled={pending}
+                          disabled={pending || isAdvancing}
                           className={`mx-auto rounded-full border transition duration-200 ${size} ${
                             isActive
                               ? "border-white bg-white/20 shadow-[0_0_0_7px_rgba(255,255,255,0.08),0_0_20px_rgba(124,58,237,0.45)]"
                               : "border-white/40 bg-transparent hover:border-white/70"
-                          }`}
+                          } ${softSelected === value ? "scale-110 shadow-[0_0_0_8px_rgba(255,255,255,0.1),0_0_28px_rgba(139,92,246,0.5)]" : ""}`}
                           aria-label={`Select intensity ${value}`}
                         />
                       );
@@ -243,7 +270,7 @@ export function QuizFlow() {
               <button
                 type="button"
                 onClick={goPrevious}
-                disabled={index === 0 || pending}
+                disabled={index === 0 || pending || isAdvancing}
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/[0.03] text-base text-white/85 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
                 aria-label="Previous question"
               >
