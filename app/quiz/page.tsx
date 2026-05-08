@@ -1,27 +1,15 @@
-import Link from "next/link";
 import { QuizFlow } from "@/components/quiz/QuizFlow";
-import { FixedAmbientBackground } from "@/components/visual/FixedAmbientBackground";
-import { AMBIENT_IMAGES } from "@/lib/media/ambient";
 
 export const dynamic = "force-dynamic";
 
 export default function QuizPage() {
   return (
-    <>
-      <FixedAmbientBackground
-        src={AMBIENT_IMAGES.quizFresh}
-        preset="quiz"
-        objectPosition="center 45%"
-        imageClassName="motion-safe:blur-[0.5px] motion-reduce:blur-none brightness-[0.92]"
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[linear-gradient(162deg,#09080f_6%,#161022_42%,#1a1217_72%,#0c0a13_100%)]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_120%_at_10%_8%,rgba(124,58,237,0.26),transparent_52%),radial-gradient(90%_90%_at_92%_30%,rgba(217,119,6,0.15),transparent_50%),radial-gradient(90%_90%_at_50%_100%,rgba(37,99,235,0.14),transparent_48%)]"
       />
-      <div className="relative z-10 min-h-[100dvh]">
-        <div className="absolute left-0 right-0 top-0 z-10 flex justify-between px-5 py-6 text-xs text-[var(--hs-muted)] sm:px-8">
-          <Link href="/" className="font-medium text-white/70 hover:text-white">
-            HiddenSense™
-          </Link>
-        </div>
-        <QuizFlow />
-      </div>
-    </>
+      <QuizFlow />
+    </div>
   );
 }
