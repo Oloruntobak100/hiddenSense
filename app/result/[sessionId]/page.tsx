@@ -137,7 +137,11 @@ export default async function ResultPage({
   }
 
   const resolvedCocktailName = moodResult?.recommendation_payload?.cocktailName ?? recommendation.cocktailName;
-  const resolvedFoodPairings = moodResult?.recommendation_payload?.foodPairings ?? [recommendation.foodName];
+  const payloadPairings = moodResult?.recommendation_payload?.foodPairings;
+  const resolvedFoodPairings =
+    Array.isArray(payloadPairings) && payloadPairings.some((p) => typeof p === "string" && p.trim())
+      ? payloadPairings.filter((p): p is string => typeof p === "string" && Boolean(p.trim()))
+      : [recommendation.foodName];
   const resolvedImage = moodResult?.recommendation_payload?.imageUrl ?? recommendation.cocktailImage;
   const resolvedFlavor = moodResult?.recommendation_payload?.flavorNotes ?? "Balanced emotional flavor profile";
   const resolvedDescription = moodResult?.recommendation_payload?.description ?? recommendation.pairingLine;

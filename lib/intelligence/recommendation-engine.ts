@@ -90,6 +90,14 @@ async function findAdminRecommendation(
   const primary = pickByTaste(data, tasteLane) ?? data[0];
   const alternatePool = data.filter((r) => r.id !== primary.id);
 
+  const catalogFood = getRecommendation(mood.key)?.foodName ?? null;
+  const foodPairings =
+    primary.food_pairings?.length && primary.food_pairings.some((s) => String(s).trim())
+      ? primary.food_pairings.filter((s) => String(s).trim())
+      : catalogFood
+        ? [catalogFood]
+        : ["Chef-selected pairing for tonight's mood"];
+
   return {
     source: "admin",
     recommendationId: primary.id,
@@ -97,7 +105,7 @@ async function findAdminRecommendation(
     alcoholCategory: primary.alcohol_category,
     imageUrl: primary.image_url,
     flavorNotes: primary.flavor_profile,
-    foodPairings: primary.food_pairings?.length ? primary.food_pairings : [],
+    foodPairings,
     description: primary.description,
     squareCheckoutUrl: primary.square_checkout_url,
     emotionalReasoning: buildReasoning(mood, scores, tasteLane),
