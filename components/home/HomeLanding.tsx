@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 
@@ -8,46 +9,8 @@ type Props = {
 export function HomeLanding({ showTesterLogin }: Props) {
   return (
     <>
-      {/* Tech overlay: grid + scanlines + network (above photo, below UI) */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-[5] bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[length:56px_56px] [mask-image:radial-gradient(ellipse_85%_65%_at_50%_38%,black_20%,transparent_72%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-[5] opacity-[0.04] [background:repeating-linear-gradient(0deg,rgba(255,255,255,0.09)_0px,rgba(255,255,255,0.09)_1px,transparent_1px,transparent_3px)]"
-      />
-      <svg
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-[5] h-full w-full opacity-[0.08] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_42%,black,transparent)]"
-      >
-        <defs>
-          <linearGradient id="hs-net" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#2563eb" />
-            <stop offset="100%" stopColor="#7c3aed" />
-          </linearGradient>
-        </defs>
-        <g stroke="url(#hs-net)" strokeWidth="0.6" fill="none">
-          <path d="M12% 38% L28% 22% L44% 36% L62% 18% L78% 34%" />
-          <path d="M18% 62% L34% 48% L52% 58% L70% 44% L88% 56%" />
-          <path d="M28% 22% L34% 48%" />
-          <path d="M62% 18% L70% 44%" />
-          <path d="M44% 36% L52% 58%" />
-        </g>
-        <g fill="#2563eb">
-          <circle cx="12%" cy="38%" r="1.8" />
-          <circle cx="28%" cy="22%" r="2" />
-          <circle cx="44%" cy="36%" r="1.6" />
-          <circle cx="62%" cy="18%" r="2" />
-          <circle cx="78%" cy="34%" r="1.6" />
-          <circle cx="18%" cy="62%" r="1.5" />
-          <circle cx="52%" cy="58%" r="2.2" />
-          <circle cx="88%" cy="56%" r="1.6" />
-        </g>
-      </svg>
-
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/55 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/72 backdrop-blur-xl">
           <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6">
             <Link href="/" className="flex items-center gap-3 text-white transition hover:opacity-90">
               <LogoMark className="h-10 w-8 object-contain sm:h-11 sm:w-9" />
@@ -87,7 +50,21 @@ export function HomeLanding({ showTesterLogin }: Props) {
         </header>
 
         <main>
-          <section className="mx-auto max-w-5xl px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:pt-24">
+          <section className="relative overflow-hidden">
+            <Image
+              src="/home-bg-wine.png"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+              style={{ objectPosition: "center 40%" }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#09080f]/58 via-[#09080f]/44 to-[#09080f]/62" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(100%_80%_at_65%_12%,rgba(234,88,12,0.2),transparent_52%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(95%_95%_at_15%_18%,rgba(124,58,237,0.14),transparent_52%)]" />
+
+            <div className="relative mx-auto flex min-h-[72vh] max-w-5xl flex-col justify-center px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:min-h-[76vh] md:pt-24">
             <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.25rem,3.8vw,2.45rem)] font-extrabold uppercase leading-[1.1] tracking-[0.055em]">
               <span className="block text-white">How you feel</span>
               <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
@@ -121,9 +98,11 @@ export function HomeLanding({ showTesterLogin }: Props) {
                 How it works
               </a>
             </div>
+            </div>
+          </section>
 
-            {/* Product preview strip */}
-            <div className="mx-auto mt-16 max-w-4xl overflow-hidden rounded-2xl border border-[var(--hs-accent)]/35 bg-[#0c0b12]/85 p-1 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur-md">
+          {/* Product preview strip */}
+          <div className="mx-auto mt-16 max-w-4xl overflow-hidden rounded-2xl border border-[var(--hs-accent)]/35 bg-[#0c0b12]/85 p-1 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur-md">
               <div className="rounded-[14px] border border-white/[0.07] bg-gradient-to-b from-white/[0.06] to-transparent px-4 py-3 sm:px-5">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 text-left">
                   <div className="flex items-center gap-2">
@@ -154,8 +133,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
                   ))}
                 </div>
               </div>
-            </div>
-          </section>
+          </div>
 
           <section id="features" className="scroll-mt-28 border-t border-white/[0.06] bg-black/20 py-16 sm:py-20">
             <div className="mx-auto max-w-6xl px-5 sm:px-6">
@@ -224,7 +202,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
             </div>
           </section>
 
-          <footer className="border-t border-white/[0.08] bg-[#09080f]/62 py-12 backdrop-blur-md">
+          <footer className="border-t border-white/[0.08] bg-[#09080f]/80 py-12 backdrop-blur-md">
             <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-6">
               <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
                 <Link href="/gate" className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline">
