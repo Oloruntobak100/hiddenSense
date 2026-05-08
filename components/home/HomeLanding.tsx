@@ -52,13 +52,13 @@ export function HomeLanding({ showTesterLogin }: Props) {
         <main>
           <section className="relative overflow-hidden">
             <Image
-              src="/home-bg-wine.png"
+              src="/home-bg-cellar.png"
               alt=""
               fill
               priority
               sizes="100vw"
               className="object-cover"
-              style={{ objectPosition: "center 40%" }}
+              style={{ objectPosition: "center 58%" }}
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#09080f]/58 via-[#09080f]/44 to-[#09080f]/62" />
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(100%_80%_at_65%_12%,rgba(234,88,12,0.2),transparent_52%)]" />
