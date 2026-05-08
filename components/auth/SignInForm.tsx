@@ -10,9 +10,14 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 type SignInFormProps = {
   showSwitchLink?: boolean;
   switchHref?: string;
+  compact?: boolean;
 };
 
-export function SignInForm({ showSwitchLink = true, switchHref = "/login?mode=signup" }: SignInFormProps = {}) {
+export function SignInForm({
+  showSwitchLink = true,
+  switchHref = "/login?mode=signup",
+  compact = false,
+}: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") ?? "/quiz";
@@ -67,18 +72,20 @@ export function SignInForm({ showSwitchLink = true, switchHref = "/login?mode=si
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex w-full flex-col gap-5">
+    <form onSubmit={onSubmit} className={`flex w-full flex-col ${compact ? "gap-3" : "gap-5"}`}>
       {error ? (
         <p
-          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-800"
+          className={`border border-red-500/30 bg-red-500/10 text-red-800 ${
+            compact ? "rounded-xl px-3 py-2 text-xs" : "rounded-2xl px-4 py-3 text-sm"
+          }`}
           role="alert"
         >
           {error}
         </p>
       ) : null}
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="signin-email">
+      <div className={compact ? "space-y-1.5" : "space-y-2"}>
+        <label className={`${compact ? "text-xs" : "text-sm"} font-medium text-[var(--hs-muted)]`} htmlFor="signin-email">
           Email
         </label>
         <input
@@ -87,12 +94,14 @@ export function SignInForm({ showSwitchLink = true, switchHref = "/login?mode=si
           type="email"
           autoComplete="email"
           required
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className={`w-full border border-black/10 bg-white text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)] ${
+            compact ? "rounded-xl px-3 py-2.5 text-sm" : "rounded-2xl px-4 py-3"
+          }`}
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--hs-muted)]" htmlFor="signin-password">
+      <div className={compact ? "space-y-1.5" : "space-y-2"}>
+        <label className={`${compact ? "text-xs" : "text-sm"} font-medium text-[var(--hs-muted)]`} htmlFor="signin-password">
           Password
         </label>
         <input
@@ -101,21 +110,25 @@ export function SignInForm({ showSwitchLink = true, switchHref = "/login?mode=si
           type="password"
           autoComplete="current-password"
           required
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)]"
+          className={`w-full border border-black/10 bg-white text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)] ${
+            compact ? "rounded-xl px-3 py-2.5 text-sm" : "rounded-2xl px-4 py-3"
+          }`}
         />
       </div>
 
       <PrimaryButton
         type="submit"
         disabled={pending}
-        className="w-full justify-center bg-[var(--hs-accent-strong)] py-4 text-lg"
+        className={`w-full justify-center bg-[var(--hs-accent-strong)] ${
+          compact ? "rounded-xl py-2.5 text-sm" : "py-4 text-lg"
+        }`}
       >
         {pending ? "Signing in…" : "Sign in"}
-        <span aria-hidden>→</span>
+        <span aria-hidden className={compact ? "text-sm" : ""}>→</span>
       </PrimaryButton>
 
       {showSwitchLink ? (
-        <p className="text-center text-sm text-[var(--hs-muted)]">
+        <p className={`text-center text-[var(--hs-muted)] ${compact ? "text-xs" : "text-sm"}`}>
           New here?{" "}
           <Link href={switchHref} className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
             Create an account

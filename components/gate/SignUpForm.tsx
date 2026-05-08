@@ -15,9 +15,14 @@ const inputCls =
 type SignUpFormProps = {
   showSwitchLink?: boolean;
   switchHref?: string;
+  compact?: boolean;
 };
 
-export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: SignUpFormProps = {}) {
+export function SignUpForm({
+  showSwitchLink = true,
+  switchHref = "/login",
+  compact = false,
+}: SignUpFormProps = {}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -81,17 +86,19 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
   }
 
   return (
-    <form onSubmit={onSubmit} className="relative flex w-full flex-col gap-4">
+    <form onSubmit={onSubmit} className={`relative flex w-full flex-col ${compact ? "gap-3" : "gap-4"}`}>
       {error ? (
         <p
-          className="rounded-xl border border-red-500/35 bg-red-500/[0.09] px-3.5 py-2.5 text-sm text-red-900"
+          className={`border border-red-500/35 bg-red-500/[0.09] text-red-900 ${
+            compact ? "rounded-lg px-3 py-2 text-xs" : "rounded-xl px-3.5 py-2.5 text-sm"
+          }`}
           role="alert"
         >
           {error}
         </p>
       ) : null}
 
-      <div className="space-y-1.5">
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="firstName">
           First name
         </label>
@@ -105,7 +112,7 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="email">
           Email
         </label>
@@ -120,7 +127,7 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="password">
           Password
         </label>
@@ -136,7 +143,7 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="phone">
           Phone
         </label>
@@ -151,9 +158,13 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
         />
       </div>
 
-      <fieldset className="space-y-2.5 rounded-2xl border border-[var(--hs-accent)]/[0.12] bg-gradient-to-b from-[var(--hs-accent)]/[0.05] to-transparent p-3.5">
+      <fieldset
+        className={`border border-[var(--hs-accent)]/[0.12] bg-gradient-to-b from-[var(--hs-accent)]/[0.05] to-transparent ${
+          compact ? "space-y-2 rounded-xl p-2.5" : "space-y-2.5 rounded-2xl p-3.5"
+        }`}
+      >
         <legend className="sr-only">Marketing preferences</legend>
-        <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-snug text-[var(--hs-ink)] sm:text-[13px]">
+        <label className={`flex cursor-pointer items-start gap-2 text-xs leading-snug text-[var(--hs-ink)] ${compact ? "" : "sm:text-[13px]"}`}>
           <span className="mt-0.5 flex flex-col gap-1">
             <input
               type="checkbox"
@@ -164,11 +175,11 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
             />
           </span>
           <span>
-            Email me Hidden Spirits news and pairings.{" "}
-            <span className="text-[var(--hs-muted)]">(Recommended)</span>
+            Email me Hidden Spirits news and pairings.
+            {!compact ? <span className="text-[var(--hs-muted)]"> (Recommended)</span> : null}
           </span>
         </label>
-        <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-snug text-[var(--hs-ink)] sm:text-[13px]">
+        <label className={`flex cursor-pointer items-start gap-2 text-xs leading-snug text-[var(--hs-ink)] ${compact ? "" : "sm:text-[13px]"}`}>
           <span className="mt-0.5 flex flex-col gap-1">
             <input
               type="checkbox"
@@ -179,8 +190,8 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
             />
           </span>
           <span>
-            Text me offers and drops.{" "}
-            <span className="text-[var(--hs-muted)]">(Recommended)</span>
+            Text me offers and drops.
+            {!compact ? <span className="text-[var(--hs-muted)]"> (Recommended)</span> : null}
           </span>
         </label>
       </fieldset>
@@ -188,7 +199,9 @@ export function SignUpForm({ showSwitchLink = true, switchHref = "/login" }: Sig
       <PrimaryButton
         type="submit"
         disabled={pending}
-        className="mt-1 w-full justify-center rounded-xl bg-[var(--hs-accent)] py-3 text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(37,99,235,0.55)] transition-[transform,box-shadow] motion-safe:active:scale-[0.99]"
+        className={`mt-1 w-full justify-center rounded-xl bg-[var(--hs-accent)] font-semibold shadow-[0_12px_28px_-8px_rgba(37,99,235,0.55)] transition-[transform,box-shadow] motion-safe:active:scale-[0.99] ${
+          compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
+        }`}
       >
         {pending ? "Please wait…" : "Create Account"}
       </PrimaryButton>
