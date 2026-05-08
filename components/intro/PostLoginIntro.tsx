@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 
@@ -11,7 +12,22 @@ const moodTeasers = [
   "Ready to TurnUp",
 ];
 
-export function PostLoginIntro() {
+type Props = {
+  displayName: string;
+};
+
+export function PostLoginIntro({ displayName }: Props) {
+  const [open, setOpen] = useState(false);
+  const initials = useMemo(
+    () =>
+      displayName
+        .split(" ")
+        .map((s) => s[0]?.toUpperCase() ?? "")
+        .join("")
+        .slice(0, 2) || "HS",
+    [displayName],
+  );
+
   return (
     <main className="relative isolate flex h-[100dvh] w-full items-center justify-center overflow-hidden px-6 py-10 text-white">
       <div
@@ -34,6 +50,41 @@ export function PostLoginIntro() {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(110%_80%_at_50%_20%,rgba(255,255,255,0.06),transparent_60%)]"
       />
+      <div className="absolute right-5 top-5 z-20 sm:right-8 sm:top-7">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.05] px-2 py-1.5 backdrop-blur-sm transition hover:bg-white/[0.1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
+            aria-expanded={open}
+          >
+            <span className="hidden text-xs text-white/75 sm:inline">Welcome back, {displayName}!</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--hs-accent-strong)] to-[var(--hs-accent)] text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(124,58,237,0.9)]">
+              {initials}
+            </span>
+          </button>
+
+          {open ? (
+            <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-white/15 bg-[#151222]/95 p-2 shadow-2xl shadow-black/55 backdrop-blur-md">
+              <p className="px-3 pb-2 pt-1 text-sm text-white/85">Welcome back, {displayName}!</p>
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="block rounded-xl px-3 py-2 text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
+              >
+                Manage Profile
+              </Link>
+              <Link
+                href="/logout"
+                onClick={() => setOpen(false)}
+                className="block rounded-xl px-3 py-2 text-sm text-red-200 transition hover:bg-red-500/15 hover:text-red-100"
+              >
+                Log out
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       <motion.section
         className="mx-auto flex w-full max-w-3xl flex-col items-center text-center"
