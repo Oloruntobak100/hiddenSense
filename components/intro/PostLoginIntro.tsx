@@ -14,9 +14,10 @@ const moodTeasers = [
 
 type Props = {
   displayName: string;
+  isAdmin: boolean;
 };
 
-export function PostLoginIntro({ displayName }: Props) {
+export function PostLoginIntro({ displayName, isAdmin }: Props) {
   const [open, setOpen] = useState(false);
   const initials = useMemo(
     () =>
@@ -74,6 +75,15 @@ export function PostLoginIntro({ displayName }: Props) {
               >
                 Manage Profile
               </Link>
+              {isAdmin ? (
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className="block rounded-xl px-3 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/15 hover:text-indigo-100"
+                >
+                  Admin Dashboard
+                </Link>
+              ) : null}
               <Link
                 href="/logout"
                 onClick={() => setOpen(false)}

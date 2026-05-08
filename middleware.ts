@@ -3,6 +3,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { PROFILE_COOKIE } from "@/lib/session/constants";
 import { isUuid } from "@/lib/session/uuid";
 
+const ADMIN_EMAIL = "kaytoba49@gmail.com";
+const isAdminEmail = (email?: string | null) =>
+  !!email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
 function allowTesterCookieBypass(request: NextRequest): boolean {
   if (
     process.env.NODE_ENV !== "development" &&
@@ -48,6 +52,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const needsAuth =
     pathname === "/quiz" ||
+    pathname === "/intro" ||
+    pathname === "/profile" ||
     pathname.startsWith("/result/") ||
     pathname.startsWith("/feedback/");
 
@@ -61,9 +67,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(gate);
   }
 
+  if (pathname.startsWith("/admin")) {
+    if (!user || !isAdminEmail(user.email)) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
   return response;
 }
 
 export const config = {
-  matcher: ["/quiz", "/result/:path*", "/feedback/:path*"],
+  matcher: ["/quiz", "/intro", "/profile", "/result/:path*", "/feedback/:path*", "/admin/:path*"],
 };

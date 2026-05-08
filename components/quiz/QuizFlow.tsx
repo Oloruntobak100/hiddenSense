@@ -58,6 +58,7 @@ export function QuizFlow() {
   const [answers, setAnswers] = useState<Record<string, ScaleValue>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [startedAt] = useState(() => Date.now());
 
   const current = QUESTIONS[index];
   const sectionMeta = SECTIONS[current.section];
@@ -104,10 +105,15 @@ export function QuizFlow() {
       setError("Complete each mood prompt to continue.");
       return;
     }
+    const sessionDurationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
     startTransition(() => {
       void (async () => {
         try {
-          const result = await submitQuiz(payload);
+          const result = await submitQuiz({
+            legacyAnswers: payload,
+            calibrationAnswers: answers,
+            sessionDurationSeconds,
+          });
           if (result.ok === false) {
             setError(result.error);
           }

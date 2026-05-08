@@ -57,6 +57,172 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["quiz_sessions"]["Insert"]>;
         Relationships: [];
       };
+      cocktail_recommendations: {
+        Row: {
+          id: string;
+          cocktail_name: string;
+          alcohol_category: string;
+          mood_tags: string[];
+          flavor_profile: string;
+          emotional_tags: string[];
+          atmosphere_tags: string[];
+          description: string;
+          square_checkout_url: string;
+          image_url: string | null;
+          food_pairings: string[];
+          priority_score: number;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          cocktail_name: string;
+          alcohol_category: string;
+          mood_tags?: string[];
+          flavor_profile: string;
+          emotional_tags?: string[];
+          atmosphere_tags?: string[];
+          description?: string;
+          square_checkout_url: string;
+          image_url?: string | null;
+          food_pairings?: string[];
+          priority_score?: number;
+          active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["cocktail_recommendations"]["Insert"]>;
+        Relationships: [];
+      };
+      user_sessions: {
+        Row: {
+          id: string;
+          profile_id: string;
+          route: string;
+          session_duration_seconds: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          route?: string;
+          session_duration_seconds?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["user_sessions"]["Insert"]>;
+        Relationships: [];
+      };
+      mood_results: {
+        Row: {
+          id: string;
+          quiz_session_id: string;
+          profile_id: string;
+          mood_key: string;
+          mood_name: string;
+          confidence_score: number;
+          secondary_mood_key: string | null;
+          secondary_mood_name: string | null;
+          emotional_profile: Json;
+          flavor_profile: string;
+          atmosphere_profile: string;
+          recommendation_source: string;
+          recommendation_id: string | null;
+          recommendation_payload: Json;
+          ai_reasoning: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          quiz_session_id: string;
+          profile_id: string;
+          mood_key: string;
+          mood_name: string;
+          confidence_score: number;
+          secondary_mood_key?: string | null;
+          secondary_mood_name?: string | null;
+          emotional_profile: Json;
+          flavor_profile: string;
+          atmosphere_profile: string;
+          recommendation_source: string;
+          recommendation_id?: string | null;
+          recommendation_payload: Json;
+          ai_reasoning: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["mood_results"]["Insert"]>;
+        Relationships: [];
+      };
+      recommendation_clicks: {
+        Row: {
+          id: string;
+          mood_result_id: string;
+          profile_id: string;
+          recommendation_id: string | null;
+          click_type: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          mood_result_id: string;
+          profile_id: string;
+          recommendation_id?: string | null;
+          click_type?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["recommendation_clicks"]["Insert"]>;
+        Relationships: [];
+      };
+      feedback_responses: {
+        Row: {
+          id: string;
+          mood_result_id: string;
+          profile_id: string;
+          response: "absolutely" | "close_enough" | "not_really";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          mood_result_id: string;
+          profile_id: string;
+          response: "absolutely" | "close_enough" | "not_really";
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["feedback_responses"]["Insert"]>;
+        Relationships: [];
+      };
+      mood_analytics: {
+        Row: {
+          id: string;
+          mood_result_id: string;
+          profile_id: string;
+          energy_score: number;
+          emotional_weight: number;
+          social_score: number;
+          mental_clarity: number;
+          behavioral_intent: number;
+          flavor_preference: number;
+          atmosphere_preference: number;
+          recommendation_clicked: boolean;
+          purchase_initiated: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          mood_result_id: string;
+          profile_id: string;
+          energy_score: number;
+          emotional_weight: number;
+          social_score: number;
+          mental_clarity: number;
+          behavioral_intent: number;
+          flavor_preference: number;
+          atmosphere_preference: number;
+          recommendation_clicked?: boolean;
+          purchase_initiated?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["mood_analytics"]["Insert"]>;
+        Relationships: [];
+      };
       feedback: {
         Row: {
           id: string;
