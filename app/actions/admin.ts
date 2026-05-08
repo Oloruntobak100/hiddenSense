@@ -1,9 +1,14 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminUser } from "@/lib/auth/admin";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+const COCKTAIL_IMAGE_BUCKET = "cocktail-images";
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 const RecommendationSchema = z.object({
   cocktail_name: z.string().min(2),
@@ -27,6 +32,45 @@ function parseCsv(value: string) {
     .filter(Boolean);
 }
 
+function extFromMime(contentType: string) {
+  if (contentType === "image/jpeg") return "jpg";
+  if (contentType === "image/png") return "png";
+  if (contentType === "image/webp") return "webp";
+  if (contentType === "image/gif") return "gif";
+  return "jpg";
+}
+
+async function uploadRecommendationImage(file: File): Promise<string | null> {
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    console.error("Invalid image type:", file.type);
+    return null;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    console.error("Image too large:", file.size);
+    return null;
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const filename = `${randomUUID()}.${extFromMime(file.type)}`;
+  const path = `recommendations/${filename}`;
+  const sb = getSupabaseAdmin();
+
+  const { data, error } = await sb.storage.from(COCKTAIL_IMAGE_BUCKET).upload(path, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+
+  if (error) {
+    console.error("Storage upload failed:", error.message);
+    return null;
+  }
+
+  const {
+    data: { publicUrl },
+  } = sb.storage.from(COCKTAIL_IMAGE_BUCKET).getPublicUrl(data.path);
+  return publicUrl;
+}
+
 export async function createRecommendation(formData: FormData) {
   await requireAdminUser();
   const parsed = RecommendationSchema.safeParse({
@@ -45,6 +89,15 @@ export async function createRecommendation(formData: FormData) {
   });
   if (!parsed.success) return;
 
+  const uploaded = formData.get("image_file");
+  let imageUrl: string | null = parsed.data.image_url.trim() !== "" ? parsed.data.image_url : null;
+
+  if (uploaded instanceof File && uploaded.size > 0) {
+    const publicUrl = await uploadRecommendationImage(uploaded);
+    if (!publicUrl) return;
+    imageUrl = publicUrl;
+  }
+
   const sb = getSupabaseAdmin();
   const { error } = await sb.from("cocktail_recommendations").insert({
     cocktail_name: parsed.data.cocktail_name,
@@ -55,7 +108,7 @@ export async function createRecommendation(formData: FormData) {
     atmosphere_tags: parseCsv(parsed.data.atmosphere_tags),
     description: parsed.data.description,
     square_checkout_url: parsed.data.square_checkout_url || "https://example.com/checkout",
-    image_url: parsed.data.image_url || null,
+    image_url: imageUrl,
     food_pairings: parseCsv(parsed.data.food_pairings),
     priority_score: parsed.data.priority_score,
     active: parsed.data.active === "on",

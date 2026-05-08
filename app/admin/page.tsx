@@ -43,15 +43,27 @@ export default async function AdminPage() {
         <section className="grid gap-8 lg:grid-cols-[1fr_1.35fr]">
           <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
             <h2 className="mb-4 text-lg font-semibold">Add Recommendation</h2>
-            <form action={createRecommendation} className="grid gap-3">
+            <form action={createRecommendation} encType="multipart/form-data" className="grid gap-3">
               <AdminInput name="cocktail_name" placeholder="Cocktail name" required />
               <AdminInput name="alcohol_category" placeholder="Alcohol category" required />
               <AdminInput name="mood_tags" placeholder="Mood tags (comma separated keys)" required />
               <AdminInput name="flavor_profile" placeholder="Flavor profile" required />
               <AdminInput name="emotional_tags" placeholder="Emotional tags (comma separated)" />
               <AdminInput name="atmosphere_tags" placeholder="Atmosphere tags (comma separated)" />
-              <AdminInput name="square_checkout_url" placeholder="Square checkout URL" />
-              <AdminInput name="image_url" placeholder="Image URL" />
+              <AdminInput name="square_checkout_url" placeholder="Square checkout URL" type="url" />
+              <div className="space-y-2">
+                <label className="block text-xs uppercase tracking-[0.12em] text-white/50">
+                  Cocktail image (upload)
+                </label>
+                <input
+                  type="file"
+                  name="image_file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="block w-full text-sm text-white/80 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-white file:hover:bg-white/15"
+                />
+                <p className="text-xs text-white/45">JPEG, PNG, WebP, or GIF — max 5 MB. Overrides image URL below when set.</p>
+              </div>
+              <AdminInput name="image_url" placeholder="Image URL (optional if you upload)" type="url" />
               <AdminInput name="food_pairings" placeholder="Food pairings (comma separated)" />
               <AdminInput name="priority_score" type="number" placeholder="Priority 0-100" />
               <textarea
@@ -76,12 +88,31 @@ export default async function AdminPage() {
               {(recs ?? []).map((rec) => (
                 <div key={rec.id} className="rounded-2xl border border-white/12 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    {rec.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={rec.image_url}
+                        alt=""
+                        className="mt-1 h-16 w-16 shrink-0 rounded-xl border border-white/15 object-cover"
+                        width={64}
+                        height={64}
+                      />
+                    ) : (
+                      <div className="mt-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.03] text-[10px] text-white/40">
+                        No img
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
                       <p className="font-semibold">{rec.cocktail_name}</p>
                       <p className="text-sm text-white/60">
                         {rec.alcohol_category} • {rec.flavor_profile}
                       </p>
                       <p className="mt-1 text-xs text-white/45">Mood tags: {rec.mood_tags.join(", ")}</p>
+                      {rec.square_checkout_url && rec.square_checkout_url !== "https://example.com/checkout" ? (
+                        <p className="mt-1 truncate text-xs text-[var(--hs-accent)]" title={rec.square_checkout_url}>
+                          Checkout linked
+                        </p>
+                      ) : null}
                     </div>
                     <div className="flex gap-2">
                       <form action={async () => { "use server"; await toggleRecommendationActive(rec.id, !rec.active); }}>
