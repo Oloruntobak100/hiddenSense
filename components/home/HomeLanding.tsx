@@ -60,12 +60,13 @@ export function HomeLanding({ showTesterLogin }: Props) {
               className="object-cover"
               style={{ objectPosition: "center 48%" }}
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#09080f]/58 via-[#09080f]/44 to-[#09080f]/62" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(100%_80%_at_65%_12%,rgba(234,88,12,0.2),transparent_52%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(95%_95%_at_15%_18%,rgba(124,58,237,0.14),transparent_52%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#09080f]/72 via-[#09080f]/58 to-[#09080f]/78" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(100%_80%_at_65%_12%,rgba(234,88,12,0.18),transparent_52%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(95%_95%_at_15%_18%,rgba(124,58,237,0.12),transparent_52%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
 
             <div className="relative mx-auto flex min-h-[72vh] max-w-5xl flex-col justify-center px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:min-h-[76vh] md:pt-24">
-            <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.25rem,3.8vw,2.45rem)] font-extrabold uppercase leading-[1.1] tracking-[0.055em]">
+            <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.25rem,3.8vw,2.45rem)] font-extrabold uppercase leading-[1.1] tracking-[0.055em] [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]">
               <span className="block text-white">How you feel</span>
               <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
                 shapes every pour
@@ -73,7 +74,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
               <span className="mt-2 block text-white/95">&amp; every bite</span>
             </h1>
 
-            <p className="mx-auto mt-7 max-w-2xl text-pretty text-sm leading-relaxed text-white/76 sm:text-base">
+            <p className="mx-auto mt-7 max-w-2xl text-pretty text-sm leading-relaxed text-white/90 [text-shadow:0_2px_14px_rgba(0,0,0,0.45)] sm:text-base">
               HiddenSense™ translates the moment—five quick taps—into cocktail and plate inspiration from Hidden Spirits.
               Curated, human-feeling, built for right now.
             </p>
@@ -93,7 +94,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/[0.04] px-6 py-3 text-[14px] font-semibold text-white/88 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.08] sm:w-auto"
+                className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-black/25 px-6 py-3 text-[14px] font-semibold text-white/95 backdrop-blur-sm transition hover:border-white/45 hover:bg-black/35 sm:w-auto"
               >
                 How it works
               </a>
