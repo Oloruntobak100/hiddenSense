@@ -72,7 +72,7 @@ export function SignUpForm({
           setError(synced.error);
           return;
         }
-        router.replace("/quiz");
+        router.replace("/intro");
         router.refresh();
         return;
       }

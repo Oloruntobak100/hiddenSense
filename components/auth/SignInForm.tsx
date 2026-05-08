@@ -20,7 +20,7 @@ export function SignInForm({
 }: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") ?? "/quiz";
+  const nextPath = searchParams.get("next") ?? "/intro";
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -61,7 +61,7 @@ export function SignInForm({
         return;
       }
 
-      const safeNext = nextPath.startsWith("/") ? nextPath : "/quiz";
+      const safeNext = nextPath.startsWith("/") ? nextPath : "/intro";
       router.replace(safeNext);
       router.refresh();
     } catch {

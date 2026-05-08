@@ -73,7 +73,7 @@ export function VerifyCodeForm({ email }: Props) {
         return;
       }
 
-      router.replace("/quiz");
+      router.replace("/intro");
       router.refresh();
     } catch (err) {
       console.error("[HiddenSense verify]", err);
