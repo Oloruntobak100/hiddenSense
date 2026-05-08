@@ -30,7 +30,7 @@ export function PurchaseCta({ moodResultId, recommendationId, checkoutUrl }: Pro
       disabled={pending}
       className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_20px_45px_-20px_rgba(124,58,237,0.85)] transition hover:brightness-110 disabled:opacity-60"
     >
-      {pending ? "Opening…" : "Unlock This Experience"}
+      {pending ? "Redirecting…" : "Proceed to checkout"}
     </button>
   );
 }
