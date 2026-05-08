@@ -30,7 +30,7 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
   );
 
   return (
-    <main className="relative isolate flex h-[100dvh] w-full items-center justify-center overflow-hidden px-6 py-10 text-white">
+    <main className="relative isolate flex max-h-[100dvh] min-h-[100dvh] w-full items-center justify-center overflow-x-hidden overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(1.75rem,env(safe-area-inset-top)+0.5rem)] text-white">
       <div
         aria-hidden
         className="absolute inset-0 -z-20 bg-[linear-gradient(160deg,#0a0911_10%,#140f1d_45%,#1a1217_70%,#0c0a13_100%)]"
@@ -51,16 +51,17 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(110%_80%_at_50%_20%,rgba(255,255,255,0.06),transparent_60%)]"
       />
-      <div className="absolute right-5 top-5 z-20 sm:right-8 sm:top-7">
+      <div className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(0.75rem,env(safe-area-inset-top)+0.25rem)] z-20 sm:right-8 sm:top-7">
         <div className="relative">
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.05] px-2 py-1.5 backdrop-blur-sm transition hover:bg-white/[0.1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
+            className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-full border border-white/20 bg-white/[0.05] px-2 py-1.5 backdrop-blur-sm transition active:bg-white/[0.14] hover:bg-white/[0.1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
             aria-expanded={open}
+            aria-label={`Account menu for ${displayName}`}
           >
-            <span className="hidden text-xs text-white/75 sm:inline">Welcome back, {displayName}!</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--hs-accent-strong)] to-[var(--hs-accent)] text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(124,58,237,0.9)]">
+            <span className="hidden max-w-[10rem] truncate text-xs text-white/75 sm:inline">Welcome back, {displayName}!</span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--hs-accent-strong)] to-[var(--hs-accent)] text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(124,58,237,0.9)] sm:h-8 sm:w-8">
               {initials}
             </span>
           </button>
@@ -97,7 +98,7 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
       </div>
 
       <motion.section
-        className="mx-auto flex w-full max-w-3xl flex-col items-center text-center"
+        className="mx-auto my-auto flex w-full max-w-3xl flex-col items-center py-6 text-center sm:py-0"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
@@ -113,7 +114,7 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
         </motion.div>
 
         <motion.h1
-          className="max-w-2xl text-balance font-[family-name:var(--font-serif)] text-[clamp(2rem,6.5vw,4.1rem)] font-semibold leading-[1.06] tracking-tight text-white"
+          className="max-w-2xl text-balance font-[family-name:var(--font-serif)] text-[clamp(1.65rem,7vw,4.1rem)] font-semibold leading-[1.08] tracking-tight text-white sm:leading-[1.06]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.65 }}
@@ -138,7 +139,7 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
         >
           <Link
             href="/quiz"
-            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] via-[#7b46ff] to-[var(--hs-accent)] px-9 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_38px_-16px_rgba(124,58,237,0.75)] transition duration-300 hover:brightness-110 hover:shadow-[0_22px_46px_-16px_rgba(124,58,237,0.82)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
+            className="inline-flex w-full max-w-sm min-[420px]:w-auto min-h-[3.25rem] items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] via-[#7b46ff] to-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_38px_-16px_rgba(124,58,237,0.75)] transition duration-300 hover:brightness-110 hover:shadow-[0_22px_46px_-16px_rgba(124,58,237,0.82)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:min-h-12 sm:max-w-none sm:px-9"
           >
             Find My Mood
           </Link>
@@ -147,7 +148,7 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
       </motion.section>
 
       <motion.div
-        className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 gap-2.5 sm:flex"
+        className="pointer-events-none absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 flex max-w-[min(100vw-2rem,22rem)] -translate-x-1/2 flex-wrap justify-center gap-2 px-2 sm:bottom-7 sm:max-w-none sm:flex-nowrap sm:gap-2.5 sm:px-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.7 }}

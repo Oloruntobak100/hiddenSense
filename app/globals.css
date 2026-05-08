@@ -19,6 +19,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
@@ -37,4 +41,23 @@ body {
     radial-gradient(90% 90% at 90% 40%, rgba(234, 88, 12, 0.22), transparent 46%),
     linear-gradient(165deg, var(--background-start), var(--background-mid));
   background-attachment: fixed;
+}
+
+/* Respect notched phones / home-indicator when padding with Tailwind arbitrary values */
+.hs-safe-x {
+  padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+}
+
+.hs-safe-b {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.hs-hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hs-hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -10,35 +10,52 @@ export function HomeLanding({ showTesterLogin }: Props) {
   return (
     <>
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/72 backdrop-blur-xl">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6">
-            <Link href="/" className="flex items-center gap-3 text-white transition hover:opacity-90">
-              <LogoMark className="h-10 w-8 object-contain sm:h-11 sm:w-9" />
-              <Wordmark className="font-[family-name:var(--font-display)] text-[13px] font-semibold uppercase tracking-[0.18em] text-white sm:text-sm" />
-            </Link>
+        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/72 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+          <nav className="mx-auto max-w-6xl px-[max(1.25rem,env(safe-area-inset-left))] py-3 pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-6 sm:py-4">
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                href="/"
+                className="flex min-h-11 min-w-0 shrink-0 items-center gap-2.5 text-white transition hover:opacity-90 sm:gap-3"
+              >
+                <LogoMark className="h-9 w-[1.85rem] object-contain sm:h-11 sm:w-9" />
+                <Wordmark className="font-[family-name:var(--font-display)] truncate text-[12px] font-semibold uppercase tracking-[0.16em] text-white sm:text-sm sm:tracking-[0.18em]" />
+              </Link>
 
-            <div className="hidden items-center gap-10 md:flex">
+              <div className="hidden flex-1 justify-center gap-10 md:flex">
+                <a
+                  href="#features"
+                  className="text-[13px] font-medium text-white/65 transition hover:text-white"
+                >
+                  Features
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="text-[13px] font-medium text-white/65 transition hover:text-white"
+                >
+                  How it works
+                </a>
+              </div>
+
+              <Link
+                href="/login"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-[var(--hs-accent)] px-4 py-2.5 text-[12px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_0_22px_-4px_rgba(37,99,235,0.55)] transition hover:brightness-110 sm:px-5 sm:text-[13px]"
+              >
+                Get started
+              </Link>
+            </div>
+            <div className="hs-hide-scrollbar mt-2 flex justify-center gap-10 overflow-x-auto py-2.5 pb-3 md:hidden">
               <a
                 href="#features"
-                className="text-[13px] font-medium text-white/65 transition hover:text-white"
+                className="shrink-0 text-[13px] font-medium text-white/65 transition hover:text-white"
               >
                 Features
               </a>
               <a
                 href="#how-it-works"
-                className="text-[13px] font-medium text-white/65 transition hover:text-white"
+                className="shrink-0 text-[13px] font-medium text-white/65 transition hover:text-white"
               >
                 How it works
               </a>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-              <Link
-                href="/login"
-                className="rounded-lg bg-[var(--hs-accent)] px-4 py-2.5 text-[12px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_0_22px_-4px_rgba(37,99,235,0.55)] transition hover:brightness-110 sm:px-5 sm:text-[13px]"
-              >
-                Get started
-              </Link>
             </div>
           </nav>
         </header>
@@ -59,8 +76,8 @@ export function HomeLanding({ showTesterLogin }: Props) {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(95%_95%_at_15%_18%,rgba(124,58,237,0.12),transparent_52%)]" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
 
-            <div className="relative mx-auto flex min-h-[72vh] max-w-5xl flex-col justify-center px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:min-h-[76vh] md:pt-24">
-            <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.25rem,3.8vw,2.45rem)] font-extrabold uppercase leading-[1.1] tracking-[0.055em] [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]">
+            <div className="relative mx-auto flex min-h-[min(100dvh,820px)] max-w-5xl flex-col justify-center px-[max(1.25rem,env(safe-area-inset-left))] pb-[max(4rem,env(safe-area-inset-bottom)+2.5rem)] pt-[max(3.25rem,env(safe-area-inset-top)+1.75rem)] pr-[max(1.25rem,env(safe-area-inset-right))] text-center sm:min-h-[72vh] sm:px-6 sm:pb-20 sm:pt-20 md:min-h-[76vh] md:pt-24">
+            <h1 className="font-[family-name:var(--font-display)] mt-4 text-[clamp(1.2rem,4.5vw,2.45rem)] font-extrabold uppercase leading-[1.1] tracking-[0.048em] [text-shadow:0_2px_18px_rgba(0,0,0,0.55)] sm:mt-5 sm:tracking-[0.055em]">
               <span className="block text-white">How you feel</span>
               <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
                 shapes every pour

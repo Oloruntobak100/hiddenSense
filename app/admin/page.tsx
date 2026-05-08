@@ -30,11 +30,16 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <main className="min-h-[100dvh] bg-[linear-gradient(160deg,#09080f_15%,#151024_46%,#1c131a_74%,#0c0a13_100%)] px-5 py-10 text-white sm:px-8">
+    <main className="min-h-[100dvh] bg-[linear-gradient(160deg,#09080f_15%,#151024_46%,#1c131a_74%,#0c0a13_100%)] px-[max(1.25rem,env(safe-area-inset-left))] py-8 pb-[max(2rem,env(safe-area-inset-bottom))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2rem,env(safe-area-inset-top)+0.75rem)] text-white sm:px-8 sm:py-10">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <h1 className="font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight">HiddenSense Admin</h1>
-          <Link href="/intro" className="rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2 text-sm hover:bg-white/[0.1]">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="font-[family-name:var(--font-serif)] text-[clamp(1.65rem,5vw,2.25rem)] font-semibold leading-tight tracking-tight">
+            HiddenSense Admin
+          </h1>
+          <Link
+            href="/intro"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2.5 text-sm hover:bg-white/[0.1] sm:self-auto"
+          >
             Back to Intro
           </Link>
         </div>

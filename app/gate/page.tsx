@@ -14,7 +14,7 @@ export default async function GatePage() {
         preset="gate"
         objectPosition="center 40%"
       />
-      <main className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center gap-6 px-5 py-10 sm:max-w-lg sm:px-6 sm:py-12">
+      <main className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center gap-6 px-[max(1.25rem,env(safe-area-inset-left))] py-[max(2rem,env(safe-area-inset-bottom))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2.5rem,env(safe-area-inset-top)+1.25rem)] sm:max-w-lg sm:px-6 sm:py-12">
         <header className="text-center">
           <div className="mb-4 flex justify-center sm:mb-5">
             <LogoMark />

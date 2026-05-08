@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   return (
-    <main className="relative z-10 mx-auto flex h-[100dvh] max-h-[100dvh] w-full max-w-lg flex-col justify-center overflow-hidden px-4 py-4 sm:px-6 sm:py-6">
+    <main className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col justify-center overflow-x-hidden overflow-y-auto px-[max(1rem,env(safe-area-inset-left))] py-[max(1rem,env(safe-area-inset-bottom))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(1rem,env(safe-area-inset-top)+0.5rem)] sm:px-6 sm:py-6">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(120%_120%_at_18%_8%,rgba(124,58,237,0.3),transparent_54%),radial-gradient(95%_95%_at_90%_34%,rgba(37,99,235,0.2),transparent_48%)]"

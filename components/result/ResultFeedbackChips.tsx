@@ -34,7 +34,7 @@ export function ResultFeedbackChips({ moodResultId }: Props) {
             type="button"
             onClick={() => onPick(opt.id)}
             disabled={pending}
-            className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
+            className={`touch-manipulation rounded-full border px-4 py-2.5 text-[13px] font-medium transition sm:py-2 sm:text-xs ${
               selected === opt.id
                 ? "border-[var(--hs-accent)] bg-[var(--hs-accent)]/20 text-white"
                 : "border-white/20 bg-white/[0.04] text-white/80 hover:bg-white/[0.1]"

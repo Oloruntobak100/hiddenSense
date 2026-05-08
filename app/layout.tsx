@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Orbitron, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -24,6 +24,12 @@ const serif = Playfair_Display({
   weight: ["500", "600", "700"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "HiddenSense™ | Hidden Spirits",
@@ -47,7 +53,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${display.variable} ${serif.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full font-sans">{children}</body>
+      <body className="min-h-full touch-manipulation font-sans">{children}</body>
     </html>
   );
 }

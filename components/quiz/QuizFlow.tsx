@@ -246,11 +246,11 @@ export function QuizFlow() {
   };
 
   return (
-    <div className="relative z-10 min-h-[100dvh] px-5 py-8 sm:px-8">
-      <div className="absolute left-5 top-6 z-20 sm:left-8 sm:top-8">
+    <div className="relative z-10 min-h-[100dvh] pb-[max(1.5rem,env(safe-area-inset-bottom))] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(1.75rem,calc(env(safe-area-inset-top)+0.5rem))] sm:pb-8 sm:pl-8 sm:pr-8 sm:pt-8">
+      <div className="absolute left-[max(1.25rem,env(safe-area-inset-left))] top-[max(1.25rem,env(safe-area-inset-top)+0.25rem)] z-20 sm:left-8 sm:top-8">
         <a
           href="/intro"
-          className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-white/85 backdrop-blur-sm transition hover:bg-white/[0.1] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
+          className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center gap-2 rounded-full border border-white/18 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/85 backdrop-blur-sm transition active:bg-white/[0.14] hover:bg-white/[0.1] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
         >
           <span aria-hidden className="text-base leading-none">
             ←
@@ -266,7 +266,7 @@ export function QuizFlow() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col justify-center pb-10 pt-16"
+            className="mx-auto flex min-h-[min(100dvh,920px)] w-full max-w-5xl flex-col justify-center pb-8 pt-14 sm:min-h-[100dvh] sm:pb-10 sm:pt-16"
           >
             <div className="mx-auto max-w-2xl text-center">
               <p className="font-[family-name:var(--font-serif)] text-[clamp(1.7rem,6vw,3rem)] font-semibold tracking-tight text-white">
@@ -290,11 +290,11 @@ export function QuizFlow() {
               ))}
             </div>
 
-            <div className="mt-11 flex justify-center">
+            <div className="mt-9 flex justify-center sm:mt-11">
               <button
                 type="button"
                 onClick={() => setStage("questions")}
-                className="rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-10 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110"
+                className="w-full max-w-sm rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 sm:w-auto sm:max-w-none sm:px-10"
               >
                 Start Mood Calibration
               </button>
@@ -307,16 +307,20 @@ export function QuizFlow() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col justify-center pb-8 pt-10"
+            className="mx-auto flex w-full max-w-3xl flex-col justify-center pb-6 pt-6 sm:min-h-[100dvh] sm:pb-8 sm:pt-10"
           >
-            <header className="mb-9 text-center">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/55">{sectionMeta.title}</p>
-              <p className="mt-2 text-sm text-white/65">{sectionMeta.subtitle}</p>
-              <div className="mt-4 flex justify-center gap-2">
+            <header className="mb-6 text-center sm:mb-9">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/55 sm:text-xs">{sectionMeta.title}</p>
+              <p className="mt-1.5 text-[13px] text-white/65 sm:mt-2 sm:text-sm">{sectionMeta.subtitle}</p>
+              <div
+                className="hs-hide-scrollbar -mx-1 mt-3 flex max-w-full justify-center gap-1.5 overflow-x-auto px-1 pb-1 sm:mt-4 sm:gap-2"
+                role="group"
+                aria-label="Question progress"
+              >
                 {ALL_QUESTIONS.map((q, i) => (
                   <span
                     key={q.id}
-                    className={`h-1.5 w-8 rounded-full transition ${
+                    className={`h-1.5 shrink-0 rounded-full transition max-sm:w-6 sm:w-8 ${
                       i <= index ? "bg-white/80" : "bg-white/20"
                     } ${q.section === activeSection ? "opacity-100" : "opacity-65"}`}
                   />
@@ -331,29 +335,34 @@ export function QuizFlow() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.28, ease: "easeOut" }}
-                className="rounded-3xl border border-white/12 bg-white/[0.03] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:px-8"
+                className="rounded-2xl border border-white/12 bg-white/[0.03] px-4 py-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:rounded-3xl sm:px-8 sm:py-8"
               >
-                <p className="mx-auto max-w-2xl text-balance text-center font-[family-name:var(--font-serif)] text-[clamp(1.35rem,4.3vw,2.2rem)] font-semibold leading-[1.2] text-white">
+                <p className="mx-auto max-w-2xl text-balance text-center font-[family-name:var(--font-serif)] text-[clamp(1.2rem,4.8vw,2.2rem)] font-semibold leading-[1.22] text-white sm:leading-[1.2]">
                   {current.prompt}
                 </p>
 
                 {current.kind === "mood" ? (
-                  <div className="mx-auto mt-10 max-w-xl">
-                    <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.12em] text-white/58 sm:text-sm sm:tracking-[0.16em]">
-                      <span>{current.left}</span>
-                      <span>{current.right}</span>
+                  <div className="mx-auto mt-8 max-w-xl sm:mt-10">
+                    <div className="mb-4 flex items-start justify-between gap-3 text-[10px] uppercase leading-snug tracking-[0.1em] text-white/58 sm:mb-3 sm:text-sm sm:tracking-[0.16em]">
+                      <span className="max-w-[42%] text-left">{current.left}</span>
+                      <span className="max-w-[42%] text-right">{current.right}</span>
                     </div>
-                    <div className="grid grid-cols-5 gap-3 sm:gap-5">
+                    <div className="grid grid-cols-5 items-end gap-2 sm:gap-5">
                       {SCALE.map((value, i) => {
                         const isActive = selected === value;
-                        const size = i === 0 || i === 4 ? "h-14 w-14" : i === 2 ? "h-10 w-10" : "h-12 w-12";
+                        const size =
+                          i === 0 || i === 4
+                            ? "h-[44px] w-[44px] sm:h-14 sm:w-14"
+                            : i === 2
+                              ? "h-11 w-11 sm:h-10 sm:w-10"
+                              : "h-12 w-12";
                         return (
                           <button
                             key={value}
                             type="button"
                             onClick={() => handleSelect(value)}
                             disabled={pending || isAdvancing}
-                            className={`mx-auto rounded-full border transition duration-200 ${size} ${
+                            className={`mx-auto touch-manipulation rounded-full border transition duration-200 ${size} ${
                               isActive
                                 ? "border-white bg-white/20 shadow-[0_0_0_7px_rgba(255,255,255,0.08),0_0_20px_rgba(124,58,237,0.45)]"
                                 : "border-white/40 bg-transparent hover:border-white/70"
@@ -365,14 +374,14 @@ export function QuizFlow() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mx-auto mt-10 grid w-full max-w-2xl gap-3">
+                  <div className="mx-auto mt-8 grid w-full max-w-2xl gap-2.5 sm:mt-10 sm:gap-3">
                     {current.options.map((option) => (
                       <button
                         key={option.key}
                         type="button"
                         onClick={() => handleTasteSelect(option.key)}
                         disabled={pending || isAdvancing}
-                        className={`rounded-2xl border px-4 py-3 text-left text-sm text-white/90 transition sm:px-5 sm:py-3.5 ${
+                        className={`touch-manipulation rounded-2xl border px-4 py-3.5 text-left text-[15px] leading-snug text-white/90 transition active:scale-[0.99] sm:px-5 sm:py-3.5 sm:text-sm ${
                           selectedTaste === option.key
                             ? "border-white/70 bg-white/[0.14] shadow-[0_0_0_6px_rgba(255,255,255,0.08)]"
                             : "border-white/20 bg-white/[0.04] hover:bg-white/[0.08]"
@@ -396,12 +405,12 @@ export function QuizFlow() {
               </p>
             ) : null}
 
-            <div className="mt-8 flex items-center justify-center">
+            <div className="mt-6 flex items-center justify-center sm:mt-8">
               <button
                 type="button"
                 onClick={goPrevious}
                 disabled={index === 0 || pending || isAdvancing}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/[0.03] text-base text-white/85 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border border-white/20 bg-white/[0.03] text-lg text-white/85 transition active:bg-white/[0.12] hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
                 aria-label="Previous question"
               >
                 ←
@@ -415,9 +424,9 @@ export function QuizFlow() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col justify-center pb-8 pt-10"
+            className="mx-auto flex w-full max-w-3xl flex-col justify-center pb-6 pt-4 sm:min-h-[100dvh] sm:pb-8 sm:pt-10"
           >
-            <div className="rounded-3xl border border-white/12 bg-white/[0.03] px-6 py-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:px-10">
+            <div className="rounded-2xl border border-white/12 bg-white/[0.03] px-5 py-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:rounded-3xl sm:px-10 sm:py-10">
               <p className="text-xs uppercase tracking-[0.18em] text-white/55">All Set</p>
               <h2 className="mx-auto mt-4 max-w-2xl font-[family-name:var(--font-serif)] text-[clamp(1.5rem,4.6vw,2.4rem)] font-semibold leading-tight text-white">
                 All responses received.
@@ -432,12 +441,12 @@ export function QuizFlow() {
                 </p>
               ) : null}
 
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-6 flex w-full max-w-md flex-col items-stretch justify-center gap-3 sm:mx-auto sm:mt-7 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
                 <button
                   type="button"
                   onClick={() => setStage("questions")}
                   disabled={pending}
-                  className="rounded-xl border border-white/20 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white/85 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="min-h-12 rounded-xl border border-white/20 bg-white/[0.03] px-4 py-3 text-[15px] font-medium text-white/85 transition active:bg-white/[0.1] hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:py-2.5 sm:text-sm"
                 >
                   Review Answers
                 </button>
@@ -445,7 +454,7 @@ export function QuizFlow() {
                   type="button"
                   onClick={() => submitMoodCalibration(answers, tasteAnswers)}
                   disabled={pending}
-                  className="rounded-xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="min-h-12 rounded-xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-6 py-3 text-[15px] font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:py-2.5 sm:text-sm"
                 >
                   {pending ? "Revealing your mood..." : "Proceed to See Mood"}
                 </button>

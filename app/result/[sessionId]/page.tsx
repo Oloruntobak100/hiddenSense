@@ -26,10 +26,48 @@ type MoodResultView = {
     alcoholCategory?: string;
     imageUrl?: string | null;
     squareCheckoutUrl?: string | null;
+    /** Legacy / DB-shaped snapshots only */
+    square_checkout_url?: string | null;
     tasteLane?: "lemon" | "strawberry" | "apple";
     secondary?: Array<{ cocktailName: string; flavorNotes: string }>;
   };
 };
+
+const PLACEHOLDER_SQUARE_CHECKOUT = "https://example.com/checkout";
+
+function coerceSquareCheckoutUrl(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed === PLACEHOLDER_SQUARE_CHECKOUT) return null;
+  try {
+    const u = new URL(trimmed);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return trimmed;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveSquareCheckoutUrl(
+  sb: ReturnType<typeof getSupabaseAdmin>,
+  moodResult: MoodResultView | null,
+): Promise<string | null> {
+  if (!moodResult) return null;
+  const p = moodResult.recommendation_payload;
+  let url =
+    coerceSquareCheckoutUrl(p.squareCheckoutUrl) ??
+    coerceSquareCheckoutUrl(p.square_checkout_url);
+
+  if (!url && moodResult.recommendation_id) {
+    const { data } = await sb
+      .from("cocktail_recommendations")
+      .select("square_checkout_url")
+      .eq("id", moodResult.recommendation_id)
+      .maybeSingle();
+    url = coerceSquareCheckoutUrl(data?.square_checkout_url ?? null);
+  }
+  return url;
+}
 
 function tasteLaneLabel(lane: "lemon" | "strawberry" | "apple") {
   return lane.charAt(0).toUpperCase() + lane.slice(1);
@@ -81,6 +119,7 @@ export default async function ResultPage({
   const recommendation = getRecommendation(row.mood_key);
   const feelings = MOOD_FEELINGS[row.mood_key] ?? [];
   let moodResult: MoodResultView | null = null;
+  let squareCheckoutUrl: string | null = null;
 
   if (sessionId !== DEMO_SESSION_ID) {
     const sb = getSupabaseAdmin();
@@ -94,6 +133,7 @@ export default async function ResultPage({
     if (qs.moodResultId) query.eq("id", qs.moodResultId);
     const { data } = await query.maybeSingle();
     moodResult = (data as MoodResultView | null) ?? null;
+    squareCheckoutUrl = await resolveSquareCheckoutUrl(sb, moodResult);
   }
 
   const resolvedCocktailName = moodResult?.recommendation_payload?.cocktailName ?? recommendation.cocktailName;
@@ -102,24 +142,23 @@ export default async function ResultPage({
   const resolvedFlavor = moodResult?.recommendation_payload?.flavorNotes ?? "Balanced emotional flavor profile";
   const resolvedDescription = moodResult?.recommendation_payload?.description ?? recommendation.pairingLine;
   const resolvedTasteLane = moodResult?.recommendation_payload?.tasteLane ?? null;
-  const checkoutUrl = moodResult?.recommendation_payload?.squareCheckoutUrl ?? null;
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
   const secondary = (moodResult?.recommendation_payload?.secondary ?? []).slice(0, 3);
 
   return (
-    <main className="mx-auto min-h-[100dvh] max-w-6xl px-5 pb-28 pt-10 sm:px-8 sm:pt-14 lg:max-w-[72rem]">
+    <main className="mx-auto min-h-[100dvh] max-w-6xl pb-[max(7rem,env(safe-area-inset-bottom)+4rem)] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2.5rem,env(safe-area-inset-top)+1.5rem)] sm:pb-28 sm:pl-8 sm:pr-8 sm:pt-14 lg:max-w-[72rem]">
       <Link
         href="/quiz"
-        className="mb-8 inline-flex text-sm font-medium text-white/55 transition hover:text-white"
+        className="mb-6 inline-flex min-h-11 items-center text-sm font-medium text-white/55 transition active:text-white hover:text-white sm:mb-8"
       >
         ← Retake pairing
       </Link>
 
-      <article className="overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] shadow-2xl shadow-black/60">
+      <article className="overflow-hidden rounded-2xl border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] shadow-2xl shadow-black/60 sm:rounded-[2rem]">
         {/* 1 — Mood read (story first) */}
-        <div className="border-b border-white/[0.08] px-6 py-10 sm:px-10 sm:py-12">
+        <div className="border-b border-white/[0.08] px-5 py-8 sm:px-10 sm:py-12">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--hs-accent)]">Mood reveal</p>
-          <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-serif)] text-[clamp(1.85rem,4.8vw,3rem)] font-semibold leading-[1.12] tracking-tight text-white">
+          <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-serif)] text-[clamp(1.55rem,5.2vw,3rem)] font-semibold leading-[1.14] tracking-tight text-white sm:leading-[1.12]">
             You&apos;re in your {row.mood_name} era.
           </h1>
 
@@ -146,20 +185,20 @@ export default async function ResultPage({
         </div>
 
         {/* 2 — Pairing (hero + details, logical read order) */}
-        <div className="px-6 py-10 sm:px-10 sm:py-12">
-          <header className="mb-8 max-w-2xl">
+        <div className="px-5 py-8 sm:px-10 sm:py-12">
+          <header className="mb-6 max-w-2xl sm:mb-8">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/50">Tonight&apos;s pairing</p>
             <p className="mt-2 text-sm text-white/60">
               A single serve chosen for your mood profile{resolvedTasteLane ? " and taste lane" : ""}.
             </p>
           </header>
 
-          <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
+          <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-14">
             {/* DOM: story first on mobile; on lg image is column 1, copy column 2 */}
-            <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1">
+            <div className="flex flex-col gap-5 sm:gap-6 lg:col-start-2 lg:row-start-1">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-accent)]/90">Signature serve</p>
-                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-[clamp(1.65rem,3.5vw,2.35rem)] font-semibold text-white">
+                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-[clamp(1.45rem,4.2vw,2.35rem)] font-semibold leading-tight text-white">
                   {resolvedCocktailName}
                 </h2>
                 <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-white/72">{resolvedDescription}</p>
@@ -192,22 +231,22 @@ export default async function ResultPage({
                 </ul>
               </div>
 
-              <div className="pt-1">
+              <div className="pt-2 sm:pt-1">
                 <PurchaseCta
                   moodResultId={moodResult?.id}
                   recommendationId={moodResult?.recommendation_id ?? null}
-                  checkoutUrl={checkoutUrl}
+                  squareCheckoutUrl={squareCheckoutUrl}
                 />
               </div>
             </div>
 
-            <figure className="overflow-hidden rounded-3xl border border-white/15 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] lg:col-start-1 lg:row-start-1">
-              <div className="relative aspect-[4/3] w-full sm:aspect-[16/11]">
+            <figure className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-3xl lg:col-start-1 lg:row-start-1">
+              <div className="relative aspect-[16/10] w-full sm:aspect-[16/11]">
                 <Image
                   src={resolvedImage}
                   alt={resolvedCocktailName}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
                   className="object-cover"
                   priority
                 />
@@ -218,7 +257,7 @@ export default async function ResultPage({
         </div>
 
         {/* 3 — Alternates + feedback + meta */}
-        <footer className="border-t border-white/[0.08] px-6 py-8 sm:px-10 sm:py-10">
+        <footer className="border-t border-white/[0.08] px-5 py-7 sm:px-10 sm:py-10">
           {secondary.length > 0 ? (
             <div className="mb-10">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-white/50">You may also like</p>
