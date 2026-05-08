@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { submitQuiz } from "@/app/actions/quiz";
 import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
@@ -64,29 +64,17 @@ export function QuizFlow() {
   const sectionMeta = SECTIONS[current.section];
   const activeSection = current.section;
 
-  const sectionQuestionIndexes = useMemo(
-    () => QUESTIONS.map((q, i) => ({ i, section: q.section })).filter((x) => x.section === activeSection).map((x) => x.i),
-    [activeSection],
-  );
-  const sectionEnd = sectionQuestionIndexes[sectionQuestionIndexes.length - 1];
-  const isSectionEnd = index === sectionEnd;
   const isFinalQuestion = index === QUESTIONS.length - 1;
   const selected = answers[current.id];
 
   const handleSelect = (value: ScaleValue) => {
     if (pending) return;
     setError(null);
-    setAnswers((prev) => ({ ...prev, [current.id]: value }));
-  };
+    const nextAnswers = { ...answers, [current.id]: value };
+    setAnswers(nextAnswers);
 
-  const goNext = () => {
-    if (selected === undefined || pending) return;
-    if (!isSectionEnd) {
-      setIndex((i) => i + 1);
-      return;
-    }
     if (isFinalQuestion) {
-      submitMoodCalibration();
+      submitMoodCalibration(nextAnswers);
       return;
     }
     setIndex((i) => i + 1);
@@ -99,8 +87,8 @@ export function QuizFlow() {
     }
   };
 
-  const submitMoodCalibration = () => {
-    const payload = buildQuizPayload(answers);
+  const submitMoodCalibration = (sourceAnswers: Record<string, ScaleValue>) => {
+    const payload = buildQuizPayload(sourceAnswers);
     if (!payload) {
       setError("Complete each mood prompt to continue.");
       return;
@@ -111,7 +99,7 @@ export function QuizFlow() {
         try {
           const result = await submitQuiz({
             legacyAnswers: payload,
-            calibrationAnswers: answers,
+            calibrationAnswers: sourceAnswers,
             sessionDurationSeconds,
           });
           if (result.ok === false) {
@@ -251,22 +239,15 @@ export function QuizFlow() {
               </p>
             ) : null}
 
-            <div className="mt-8 flex items-center justify-center gap-3">
+            <div className="mt-8 flex items-center justify-center">
               <button
                 type="button"
                 onClick={goPrevious}
                 disabled={index === 0 || pending}
-                className="rounded-2xl border border-white/18 bg-white/[0.03] px-7 py-3 text-sm font-medium text-white/85 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/[0.03] text-base text-white/85 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Previous question"
               >
-                Previous
-              </button>
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={selected === undefined || pending}
-                className="rounded-2xl border border-white/22 bg-white/[0.04] px-9 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                {pending ? "Revealing your pairing…" : isFinalQuestion ? "Reveal My Pairing" : isSectionEnd ? "Next Section" : "Continue"}
+                ←
               </button>
             </div>
           </motion.section>
