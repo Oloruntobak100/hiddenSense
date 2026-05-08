@@ -3,33 +3,31 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { ALCOHOL_CATEGORIES, type AlcoholCategory } from "@/lib/admin/alcohol-categories";
 import { requireAdminUser } from "@/lib/auth/admin";
+import { MOOD_ARCHETYPES } from "@/lib/intelligence/mood-archetypes";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 const COCKTAIL_IMAGE_BUCKET = "cocktail-images";
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
-const RecommendationSchema = z.object({
-  cocktail_name: z.string().min(2),
-  alcohol_category: z.string().min(2),
-  mood_tags: z.string().default(""),
-  flavor_profile: z.string().min(2),
-  emotional_tags: z.string().default(""),
-  atmosphere_tags: z.string().default(""),
-  description: z.string().min(5),
-  square_checkout_url: z.string().url().or(z.literal("")),
-  image_url: z.string().url().or(z.literal("")),
-  food_pairings: z.string().default(""),
-  priority_score: z.coerce.number().int().min(0).max(100).default(50),
-  active: z.enum(["on", "off"]).optional(),
+const ALL_MOOD_KEYS = MOOD_ARCHETYPES.map((m) => m.key);
+
+/** Minimal admin payload: curated rows tagged for every mood so the engine can still serve them via priority_score. */
+const simpleCategory = z.string().refine((s): s is AlcoholCategory => (ALCOHOL_CATEGORIES as readonly string[]).includes(s));
+
+const SimpleRecommendationSchema = z.object({
+  cocktail_name: z.string().trim().min(2),
+  alcohol_category: simpleCategory,
+  square_checkout_url: z.string().trim().url(),
 });
 
-function parseCsv(value: string) {
-  return value
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
+function flavorSlugFromCategory(category: string) {
+  return category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "curated-house";
 }
 
 function extFromMime(contentType: string) {
@@ -73,48 +71,50 @@ async function uploadRecommendationImage(file: File): Promise<string | null> {
 
 export async function createRecommendation(formData: FormData) {
   await requireAdminUser();
-  const parsed = RecommendationSchema.safeParse({
-    cocktail_name: formData.get("cocktail_name"),
-    alcohol_category: formData.get("alcohol_category"),
-    mood_tags: formData.get("mood_tags"),
-    flavor_profile: formData.get("flavor_profile"),
-    emotional_tags: formData.get("emotional_tags"),
-    atmosphere_tags: formData.get("atmosphere_tags"),
-    description: formData.get("description"),
-    square_checkout_url: formData.get("square_checkout_url"),
-    image_url: formData.get("image_url"),
-    food_pairings: formData.get("food_pairings"),
-    priority_score: formData.get("priority_score"),
-    active: formData.get("active") ? "on" : "off",
-  });
-  if (!parsed.success) return;
 
   const uploaded = formData.get("image_file");
-  let imageUrl: string | null = parsed.data.image_url.trim() !== "" ? parsed.data.image_url : null;
-
-  if (uploaded instanceof File && uploaded.size > 0) {
-    const publicUrl = await uploadRecommendationImage(uploaded);
-    if (!publicUrl) return;
-    imageUrl = publicUrl;
+  if (!(uploaded instanceof File) || uploaded.size === 0) {
+    console.error("createRecommendation: image file required");
+    return;
   }
+
+  const parsed = SimpleRecommendationSchema.safeParse({
+    cocktail_name: formData.get("cocktail_name"),
+    alcohol_category: formData.get("alcohol_category"),
+    square_checkout_url: formData.get("square_checkout_url"),
+  });
+
+  if (!parsed.success) {
+    console.error("createRecommendation: validation failed", parsed.error.flatten());
+    return;
+  }
+
+  const imageUrl = await uploadRecommendationImage(uploaded);
+  if (!imageUrl) return;
+
+  const slug = flavorSlugFromCategory(parsed.data.alcohol_category);
+  const description = `${parsed.data.cocktail_name} · ${parsed.data.alcohol_category} serve for Hidden Spirits checkout.`;
 
   const sb = getSupabaseAdmin();
   const { error } = await sb.from("cocktail_recommendations").insert({
     cocktail_name: parsed.data.cocktail_name,
     alcohol_category: parsed.data.alcohol_category,
-    mood_tags: parseCsv(parsed.data.mood_tags),
-    flavor_profile: parsed.data.flavor_profile,
-    emotional_tags: parseCsv(parsed.data.emotional_tags),
-    atmosphere_tags: parseCsv(parsed.data.atmosphere_tags),
-    description: parsed.data.description,
-    square_checkout_url: parsed.data.square_checkout_url || "https://example.com/checkout",
+    mood_tags: [...ALL_MOOD_KEYS],
+    flavor_profile: slug,
+    emotional_tags: [],
+    atmosphere_tags: [],
+    description,
+    square_checkout_url: parsed.data.square_checkout_url,
     image_url: imageUrl,
-    food_pairings: parseCsv(parsed.data.food_pairings),
-    priority_score: parsed.data.priority_score,
-    active: parsed.data.active === "on",
+    food_pairings: [],
+    priority_score: 85,
+    active: true,
   });
 
-  if (error) return;
+  if (error) {
+    console.error("createRecommendation: insert failed", error.message);
+    return;
+  }
   revalidatePath("/admin");
 }
 

@@ -1,10 +1,22 @@
 import Link from "next/link";
-import type { InputHTMLAttributes } from "react";
 import { createRecommendation, deleteRecommendation, toggleRecommendationActive } from "@/app/actions/admin";
+import { ALCOHOL_CATEGORIES } from "@/lib/admin/alcohol-categories";
 import { requireAdminUser } from "@/lib/auth/admin";
+import { MOOD_ARCHETYPES } from "@/lib/intelligence/mood-archetypes";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
+
+const ALL_MOOD_KEY_SET = new Set(MOOD_ARCHETYPES.map((m) => m.key));
+
+function isUniversalMoodTags(tags: string[]) {
+  const unique = new Set(tags);
+  if (unique.size !== ALL_MOOD_KEY_SET.size) return false;
+  for (const k of ALL_MOOD_KEY_SET) {
+    if (!unique.has(k)) return false;
+  }
+  return true;
+}
 
 export default async function AdminPage() {
   await requireAdminUser();
@@ -40,50 +52,74 @@ export default async function AdminPage() {
           />
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-[1fr_1.35fr]">
-          <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
-            <h2 className="mb-4 text-lg font-semibold">Add Recommendation</h2>
-            <form action={createRecommendation} encType="multipart/form-data" className="grid gap-3">
-              <AdminInput name="cocktail_name" placeholder="Cocktail name" required />
-              <AdminInput name="alcohol_category" placeholder="Alcohol category" required />
-              <AdminInput name="mood_tags" placeholder="Mood tags (comma separated keys)" required />
-              <AdminInput name="flavor_profile" placeholder="Flavor profile" required />
-              <AdminInput name="emotional_tags" placeholder="Emotional tags (comma separated)" />
-              <AdminInput name="atmosphere_tags" placeholder="Atmosphere tags (comma separated)" />
-              <AdminInput name="square_checkout_url" placeholder="Square checkout URL" type="url" />
-              <div className="space-y-2">
-                <label className="block text-xs uppercase tracking-[0.12em] text-white/50">
-                  Cocktail image (upload)
-                </label>
+        <section className="grid gap-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
+          <div className="h-fit rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
+            <h2 className="mb-2 text-lg font-semibold">Add checkout listing</h2>
+            <p className="mb-6 text-xs leading-relaxed text-white/48">
+              Drink name, spirit category, Square checkout link, and one hero image (JPEG / PNG / WebP / GIF, max 5 MB).
+              Listings apply across all moods; priority is boosted so they surface when matched.
+            </p>
+            <form action={createRecommendation} encType="multipart/form-data" className="grid gap-4">
+              <label className="grid gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Drink name</span>
+                <input
+                  name="cocktail_name"
+                  required
+                  placeholder="Hidden Spirits Evening Spritz"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2.5 text-sm outline-none placeholder:text-white/35"
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Category</span>
+                <select
+                  name="alcohol_category"
+                  required
+                  className="appearance-none rounded-xl border border-white/15 bg-black/20 bg-[length:14px_10px] bg-[right_0.75rem_center] bg-no-repeat px-3 py-2.5 text-sm outline-none [&>option]:bg-[#151024]"
+                  style={{
+                    backgroundImage:
+                      'url(\'data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"%3E%3Cpath stroke="%23ffffff" stroke-opacity=".45" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m6 8 4 4 4-4"/%3E%3C/svg%3E\')',
+                    paddingRight: "2.25rem",
+                  }}
+                >
+                  {ALCOHOL_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Square checkout URL</span>
+                <input
+                  name="square_checkout_url"
+                  type="url"
+                  required
+                  placeholder="https://..."
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2.5 text-sm outline-none placeholder:text-white/35"
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Image upload</span>
                 <input
                   type="file"
                   name="image_file"
+                  required
                   accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="block w-full text-sm text-white/80 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-white file:hover:bg-white/15"
+                  className="text-sm text-white/80 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-white file:hover:bg-white/15"
                 />
-                <p className="text-xs text-white/45">JPEG, PNG, WebP, or GIF — max 5 MB. Overrides image URL below when set.</p>
-              </div>
-              <AdminInput name="image_url" placeholder="Image URL (optional if you upload)" type="url" />
-              <AdminInput name="food_pairings" placeholder="Food pairings (comma separated)" />
-              <AdminInput name="priority_score" type="number" placeholder="Priority 0-100" />
-              <textarea
-                name="description"
-                placeholder="Description"
-                required
-                className="h-24 rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none placeholder:text-white/35"
-              />
-              <label className="inline-flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" name="active" defaultChecked className="accent-[var(--hs-accent)]" />
-                Active recommendation
               </label>
-              <button className="mt-2 rounded-xl bg-[var(--hs-accent)] px-4 py-2.5 font-semibold hover:brightness-110">
-                Save Recommendation
+
+              <button type="submit" className="mt-2 rounded-xl bg-[var(--hs-accent)] px-4 py-2.5 text-sm font-semibold hover:brightness-110">
+                Save listing
               </button>
             </form>
           </div>
 
           <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
-            <h2 className="mb-4 text-lg font-semibold">Recommendation Library</h2>
+            <h2 className="mb-4 text-lg font-semibold">Checkout library</h2>
             <div className="space-y-3">
               {(recs ?? []).map((rec) => (
                 <div key={rec.id} className="rounded-2xl border border-white/12 bg-black/20 p-4">
@@ -104,26 +140,29 @@ export default async function AdminPage() {
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">{rec.cocktail_name}</p>
-                      <p className="text-sm text-white/60">
-                        {rec.alcohol_category} • {rec.flavor_profile}
-                      </p>
-                      <p className="mt-1 text-xs text-white/45">Mood tags: {rec.mood_tags.join(", ")}</p>
+                      <p className="text-sm text-white/65">{rec.alcohol_category}</p>
+                      {isUniversalMoodTags(rec.mood_tags) ? (
+                        <p className="mt-1 text-xs text-white/45">Eligible for · all moods</p>
+                      ) : rec.mood_tags.length > 0 ? (
+                        <p className="mt-1 text-xs text-white/45">Mood tags · {rec.mood_tags.join(", ")}</p>
+                      ) : null}
                       {rec.square_checkout_url && rec.square_checkout_url !== "https://example.com/checkout" ? (
                         <p className="mt-1 truncate text-xs text-[var(--hs-accent)]" title={rec.square_checkout_url}>
-                          Checkout linked
+                          Square linked
                         </p>
                       ) : null}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex shrink-0 gap-2">
                       <form action={async () => { "use server"; await toggleRecommendationActive(rec.id, !rec.active); }}>
                         <button
+                          type="submit"
                           className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${rec.active ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"}`}
                         >
                           {rec.active ? "Active" : "Inactive"}
                         </button>
                       </form>
                       <form action={async () => { "use server"; await deleteRecommendation(rec.id); }}>
-                        <button className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200">
+                        <button type="submit" className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200">
                           Delete
                         </button>
                       </form>
@@ -145,14 +184,5 @@ function MetricCard({ title, value }: { title: string; value: string }) {
       <p className="text-xs uppercase tracking-[0.15em] text-white/55">{title}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
     </div>
-  );
-}
-
-function AdminInput(props: InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none placeholder:text-white/35"
-    />
   );
 }
