@@ -26,10 +26,14 @@ type MoodResultView = {
     alcoholCategory?: string;
     imageUrl?: string | null;
     squareCheckoutUrl?: string | null;
-      tasteLane?: "lemon" | "strawberry" | "apple";
+    tasteLane?: "lemon" | "strawberry" | "apple";
     secondary?: Array<{ cocktailName: string; flavorNotes: string }>;
   };
 };
+
+function tasteLaneLabel(lane: "lemon" | "strawberry" | "apple") {
+  return lane.charAt(0).toUpperCase() + lane.slice(1);
+}
 
 export default async function ResultPage({
   params,
@@ -100,95 +104,151 @@ export default async function ResultPage({
   const resolvedTasteLane = moodResult?.recommendation_payload?.tasteLane ?? null;
   const checkoutUrl = moodResult?.recommendation_payload?.squareCheckoutUrl ?? null;
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
+  const secondary = (moodResult?.recommendation_payload?.secondary ?? []).slice(0, 3);
 
   return (
-    <main className="mx-auto min-h-[100dvh] max-w-4xl px-5 pb-24 pt-12 sm:px-6 sm:pt-16">
-      <Link href="/quiz" className="mb-8 inline-block text-sm text-white/60 hover:text-white">
-        Retake pairing
+    <main className="mx-auto min-h-[100dvh] max-w-6xl px-5 pb-28 pt-10 sm:px-8 sm:pt-14 lg:max-w-[72rem]">
+      <Link
+        href="/quiz"
+        className="mb-8 inline-flex text-sm font-medium text-white/55 transition hover:text-white"
+      >
+        ← Retake pairing
       </Link>
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] p-6 shadow-2xl shadow-black/60 sm:p-10">
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--hs-accent)]">Mood reveal</p>
-        <p className="mt-3 font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-          You&apos;re in your {row.mood_name} era.
-        </p>
+      <article className="overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] shadow-2xl shadow-black/60">
+        {/* 1 — Mood read (story first) */}
+        <div className="border-b border-white/[0.08] px-6 py-10 sm:px-10 sm:py-12">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--hs-accent)]">Mood reveal</p>
+          <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-serif)] text-[clamp(1.85rem,4.8vw,3rem)] font-semibold leading-[1.12] tracking-tight text-white">
+            You&apos;re in your {row.mood_name} era.
+          </h1>
 
-        <div className="mt-8 space-y-2">
-          <p className="text-sm leading-relaxed text-white/80">{reason}</p>
-          <p className="text-sm text-white/55">Emotional layers</p>
-          <div className="flex flex-wrap gap-2 pt-2">
-            {feelings.map((f) => (
-              <span
-                key={f}
-                className="rounded-full border border-white/20 bg-white/[0.06] px-4 py-1.5 text-sm font-medium text-white/90"
-              >
-                {f}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-white/55">The perfect pairing tonight</p>
-            <div className="overflow-hidden rounded-3xl border border-white/15 bg-white/[0.04]">
-              <div className="relative aspect-[4/3] w-full">
-                <Image src={resolvedImage} alt={resolvedCocktailName} fill sizes="(max-width: 768px) 100vw, 55vw" className="object-cover" />
-              </div>
-            </div>
-            <h2 className="font-[family-name:var(--font-serif)] text-3xl text-white">{resolvedCocktailName}</h2>
-            <p className="text-sm text-white/70">{resolvedDescription}</p>
-            <p className="text-sm text-white/60">
-              <span className="text-white/80">Flavor notes:</span> {resolvedFlavor}
-            </p>
-            {resolvedTasteLane ? (
-              <p className="text-sm text-white/60">
-                <span className="text-white/80">Taste lane:</span> {resolvedTasteLane}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-5 rounded-3xl border border-white/15 bg-white/[0.04] p-5">
-            <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-white/55">Best enjoyed with</p>
-              <ul className="mt-2 space-y-1 text-white/88">
-                {resolvedFoodPairings.map((food) => (
-                  <li key={food}>• {food}</li>
+          {feelings.length > 0 ? (
+            <div className="mt-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Emotional layers</p>
+              <ul className="mt-3 flex flex-wrap gap-2" aria-label="Emotional layers">
+                {feelings.map((f) => (
+                  <li
+                    key={f}
+                    className="rounded-full border border-white/18 bg-white/[0.06] px-4 py-1.5 text-sm font-medium text-white/90"
+                  >
+                    {f}
+                  </li>
                 ))}
               </ul>
             </div>
+          ) : null}
 
-            <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-white/55">Why this matches you</p>
-              <p className="mt-2 text-sm leading-relaxed text-white/75">{reason}</p>
+          <div className="mt-8 max-w-3xl border-l-2 border-[var(--hs-accent)]/50 pl-5 sm:pl-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Why this mood fits</p>
+            <p className="mt-2 text-[15px] leading-relaxed text-white/82">{reason}</p>
+          </div>
+        </div>
+
+        {/* 2 — Pairing (hero + details, logical read order) */}
+        <div className="px-6 py-10 sm:px-10 sm:py-12">
+          <header className="mb-8 max-w-2xl">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/50">Tonight&apos;s pairing</p>
+            <p className="mt-2 text-sm text-white/60">
+              A single serve chosen for your mood profile{resolvedTasteLane ? " and taste lane" : ""}.
+            </p>
+          </header>
+
+          <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
+            {/* DOM: story first on mobile; on lg image is column 1, copy column 2 */}
+            <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-accent)]/90">Signature serve</p>
+                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-[clamp(1.65rem,3.5vw,2.35rem)] font-semibold text-white">
+                  {resolvedCocktailName}
+                </h2>
+                <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-white/72">{resolvedDescription}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-xl border border-white/14 bg-white/[0.05] px-3.5 py-2 text-xs text-white/78">
+                  <span className="font-medium text-white/90">Flavor notes · </span>
+                  {resolvedFlavor}
+                </span>
+                {resolvedTasteLane ? (
+                  <span className="rounded-xl border border-white/14 bg-white/[0.05] px-3.5 py-2 text-xs text-white/78">
+                    <span className="font-medium text-white/90">Taste lane · </span>
+                    {tasteLaneLabel(resolvedTasteLane)}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-white/12 bg-white/[0.03] p-5 sm:p-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Best enjoyed with</p>
+                <ul className="mt-3 space-y-2 text-[15px] text-white/88">
+                  {resolvedFoodPairings.map((food) => (
+                    <li key={food} className="flex gap-2">
+                      <span className="text-[var(--hs-accent)]" aria-hidden>
+                        ·
+                      </span>
+                      <span>{food}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="pt-1">
+                <PurchaseCta
+                  moodResultId={moodResult?.id}
+                  recommendationId={moodResult?.recommendation_id ?? null}
+                  checkoutUrl={checkoutUrl}
+                />
+              </div>
             </div>
 
-            <PurchaseCta
-              moodResultId={moodResult?.id}
-              recommendationId={moodResult?.recommendation_id ?? null}
-              checkoutUrl={checkoutUrl}
-            />
+            <figure className="overflow-hidden rounded-3xl border border-white/15 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] lg:col-start-1 lg:row-start-1">
+              <div className="relative aspect-[4/3] w-full sm:aspect-[16/11]">
+                <Image
+                  src={resolvedImage}
+                  alt={resolvedCocktailName}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <figcaption className="sr-only">Visual for {resolvedCocktailName}</figcaption>
+            </figure>
           </div>
         </div>
 
-        <div className="mt-10 space-y-4 border-t border-white/15 pt-8">
-          <p className="text-xs uppercase tracking-[0.16em] text-white/55">You may also like</p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {(moodResult?.recommendation_payload?.secondary ?? [])
-              .slice(0, 3)
-              .map((secondary) => (
-                <div key={secondary.cocktailName} className="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
-                  <p className="font-semibold text-white">{secondary.cocktailName}</p>
-                  <p className="mt-1 text-xs text-white/60">{secondary.flavorNotes}</p>
-                </div>
-              ))}
-          </div>
-          {moodResult?.id ? <ResultFeedbackChips moodResultId={moodResult.id} /> : null}
-          <p className="text-xs text-white/45">
-            Source: {moodResult?.recommendation_source ?? "internal"} · Session {sessionId}
+        {/* 3 — Alternates + feedback + meta */}
+        <footer className="border-t border-white/[0.08] px-6 py-8 sm:px-10 sm:py-10">
+          {secondary.length > 0 ? (
+            <div className="mb-10">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-white/50">You may also like</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {secondary.map((item) => (
+                  <div
+                    key={item.cocktailName}
+                    className="rounded-2xl border border-white/12 bg-white/[0.04] p-4 transition hover:border-white/18"
+                  >
+                    <p className="font-semibold text-white">{item.cocktailName}</p>
+                    <p className="mt-1 text-xs text-white/55">{item.flavorNotes}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {moodResult?.id ? (
+            <div className="mb-8 max-w-2xl">
+              <ResultFeedbackChips moodResultId={moodResult.id} />
+            </div>
+          ) : null}
+
+          <p className="text-[11px] text-white/38">
+            Source · {moodResult?.recommendation_source ?? "internal"}
+            <span className="mx-2 text-white/25">·</span>
+            Session {sessionId}
           </p>
-        </div>
-      </div>
+        </footer>
+      </article>
     </main>
   );
 }
