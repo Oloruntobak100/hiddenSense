@@ -158,44 +158,6 @@ export function SignUpForm({
         />
       </div>
 
-      <fieldset
-        className={`border border-[var(--hs-accent)]/[0.12] bg-gradient-to-b from-[var(--hs-accent)]/[0.05] to-transparent ${
-          compact ? "space-y-2 rounded-xl p-2.5" : "space-y-2.5 rounded-2xl p-3.5"
-        }`}
-      >
-        <legend className="sr-only">Marketing preferences</legend>
-        <label className={`flex cursor-pointer items-start gap-2 text-xs leading-snug text-[var(--hs-ink)] ${compact ? "" : "sm:text-[13px]"}`}>
-          <span className="mt-0.5 flex flex-col gap-1">
-            <input
-              type="checkbox"
-              name="emailOptIn"
-              value="true"
-              defaultChecked
-              className="h-4 w-4 rounded border-black/20 accent-[var(--hs-accent)]"
-            />
-          </span>
-          <span>
-            Email me Hidden Spirits news and pairings.
-            {!compact ? <span className="text-[var(--hs-muted)]"> (Recommended)</span> : null}
-          </span>
-        </label>
-        <label className={`flex cursor-pointer items-start gap-2 text-xs leading-snug text-[var(--hs-ink)] ${compact ? "" : "sm:text-[13px]"}`}>
-          <span className="mt-0.5 flex flex-col gap-1">
-            <input
-              type="checkbox"
-              name="smsOptIn"
-              value="true"
-              defaultChecked
-              className="h-4 w-4 rounded border-black/20 accent-[var(--hs-accent)]"
-            />
-          </span>
-          <span>
-            Text me offers and drops.
-            {!compact ? <span className="text-[var(--hs-muted)]"> (Recommended)</span> : null}
-          </span>
-        </label>
-      </fieldset>
-
       <PrimaryButton
         type="submit"
         disabled={pending}
