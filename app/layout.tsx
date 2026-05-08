@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   },
   description:
     "Translate how you feel right now into a curated cocktail + food pairing from Hidden Spirits.",
+  icons: {
+    icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/logo.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
