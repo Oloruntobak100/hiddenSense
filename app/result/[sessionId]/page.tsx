@@ -48,7 +48,6 @@ export default async function ResultPage({
     id: string;
     mood_key: string;
     mood_name: string;
-    confidence_score: number;
   };
 
   let row: RowLite;
@@ -62,7 +61,6 @@ export default async function ResultPage({
       id: DEMO_SESSION_ID,
       mood_key: demo.mood_key,
       mood_name: demo.mood_name,
-      confidence_score: demo.confidence_score,
     };
   } else {
     const dbRow = await getQuizSessionForProfile(sessionId);
@@ -73,7 +71,6 @@ export default async function ResultPage({
       id: dbRow.id,
       mood_key: dbRow.mood_key,
       mood_name: dbRow.mood_name,
-      confidence_score: dbRow.confidence_score,
     };
   }
 
@@ -115,7 +112,6 @@ export default async function ResultPage({
         <p className="mt-3 font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight text-white sm:text-5xl">
           You&apos;re in your {row.mood_name} era.
         </p>
-        <p className="mt-3 text-sm text-white/65">Confidence signal: {row.confidence_score} / 5</p>
 
         <div className="mt-8 space-y-2">
           <p className="text-sm leading-relaxed text-white/80">{reason}</p>
