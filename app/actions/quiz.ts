@@ -20,6 +20,7 @@ import {
 } from "@/lib/intelligence/scoring";
 import { MOOD_ARCHETYPES } from "@/lib/intelligence/mood-archetypes";
 import { getRecommendationForMood } from "@/lib/intelligence/recommendation-engine";
+import type { TasteLane } from "@/lib/intelligence/taste-lane";
 
 export type QuizActionState = { ok: false; error: string };
 
@@ -28,6 +29,7 @@ type SubmitQuizInput =
   | {
       legacyAnswers: QuizAnswers;
       calibrationAnswers?: Record<string, number>;
+      tasteLane?: TasteLane;
       sessionDurationSeconds?: number;
     };
 
@@ -39,6 +41,7 @@ export async function submitQuiz(input: SubmitQuizInput): Promise<QuizActionStat
 
   const answersRaw = "legacyAnswers" in input ? input.legacyAnswers : input;
   const calibrationAnswers = "legacyAnswers" in input ? input.calibrationAnswers ?? {} : {};
+  const tasteLane = "legacyAnswers" in input ? input.tasteLane ?? "strawberry" : "strawberry";
   const sessionDurationSeconds = "legacyAnswers" in input ? input.sessionDurationSeconds ?? 0 : 0;
 
   const keys = ["q1", "q2", "q3", "q4", "q5"] as const;
@@ -63,6 +66,7 @@ export async function submitQuiz(input: SubmitQuizInput): Promise<QuizActionStat
   const recommendation = await getRecommendationForMood({
     mood: chosenMood,
     scores: scoreProfile,
+    tasteLane,
   });
   const flavorProfile = generateFlavorProfile(scoreProfile);
   const atmosphereProfile = generateAtmosphereProfile(scoreProfile);
@@ -87,6 +91,7 @@ export async function submitQuiz(input: SubmitQuizInput): Promise<QuizActionStat
         emotional_scores: scoreProfile,
         flavor_profile: flavorProfile,
         atmosphere_profile: atmosphereProfile,
+        taste_lane: tasteLane,
       } as unknown as Json,
       mood_key: chosenMood.key,
       mood_name: chosenMood.name,

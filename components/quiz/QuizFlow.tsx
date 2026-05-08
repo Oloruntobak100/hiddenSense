@@ -4,11 +4,13 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { submitQuiz } from "@/app/actions/quiz";
 import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
+import { deriveTasteLane, type TasteAnswers, type TasteOption } from "@/lib/intelligence/taste-lane";
 
-type SectionId = "energy" | "social" | "flavor";
+type SectionId = "energy" | "social" | "flavor" | "taste";
 type ScaleValue = -2 | -1 | 0 | 1 | 2;
 
 type MoodQuestion = {
+  kind: "mood";
   id: string;
   section: SectionId;
   prompt: string;
@@ -16,20 +18,89 @@ type MoodQuestion = {
   right: string;
 };
 
+type TasteQuestion = {
+  kind: "taste";
+  id: string;
+  section: SectionId;
+  prompt: string;
+  options: Array<{ key: TasteOption; text: string }>;
+};
+
 const QUESTIONS: MoodQuestion[] = [
-  { id: "m1", section: "energy", prompt: "What’s your pace tonight?", left: "Quiet Reset", right: "Full Energy" },
-  { id: "m2", section: "energy", prompt: "What’s sitting with you right now?", left: "Pressure", right: "Lightness" },
-  { id: "m3", section: "energy", prompt: "How loud is your mind tonight?", left: "Heavy & Foggy", right: "Sharp & Clear" },
-  { id: "m4", section: "social", prompt: "How social does tonight feel?", left: "Keep to Myself", right: "Outside Energy" },
-  { id: "m5", section: "social", prompt: "What do you need most tonight?", left: "Escape", right: "Experience" },
-  { id: "m6", section: "flavor", prompt: "What kind of experience sounds best?", left: "Deep & Smooth", right: "Crisp & Refreshing" },
-  { id: "m7", section: "flavor", prompt: "Pick the atmosphere that feels closest.", left: "Candlelight & Quiet", right: "Neon Night Energy" },
+  { kind: "mood", id: "m1", section: "energy", prompt: "How’s your energy right now?", left: "Low / Drained", right: "High / Energized" },
+  { kind: "mood", id: "m2", section: "energy", prompt: "What best describes your mood?", left: "Heavy / Overwhelmed", right: "Light / Happy" },
+  { kind: "mood", id: "m3", section: "energy", prompt: "How does your mind feel right now?", left: "Foggy / Tired", right: "Clear / Focused" },
+  { kind: "mood", id: "m4", section: "social", prompt: "What are you in the mood for socially?", left: "Be Alone", right: "Be Around People" },
+  { kind: "mood", id: "m5", section: "social", prompt: "Right now, what do you want most?", left: "Disconnect / Reset", right: "Go Out / Celebrate" },
+  { kind: "mood", id: "m6", section: "flavor", prompt: "What flavor direction feels right tonight?", left: "Deep / Smooth", right: "Crisp / Refreshing" },
+  { kind: "mood", id: "m7", section: "flavor", prompt: "What atmosphere matches your energy?", left: "Quiet / Candlelight", right: "Neon / High Energy" },
 ];
+
+const TASTE_QUESTIONS: TasteQuestion[] = [
+  {
+    kind: "taste",
+    id: "t1",
+    section: "taste",
+    prompt: "Which flavor hits hardest for you when you’re eating?",
+    options: [
+      { key: "A", text: "Bright, tangy, citrusy" },
+      { key: "B", text: "Sweet, juicy, slightly candy-like" },
+      { key: "C", text: "Warm, smooth, slightly spiced" },
+    ],
+  },
+  {
+    kind: "taste",
+    id: "t2",
+    section: "taste",
+    prompt: "If you had to pick one, which would you reach for?",
+    options: [
+      { key: "A", text: "Lemon bar / key lime pie" },
+      { key: "B", text: "Strawberry shortcake / fruit tart" },
+      { key: "C", text: "Apple pie / baked dessert" },
+    ],
+  },
+  {
+    kind: "taste",
+    id: "t3",
+    section: "taste",
+    prompt: "What texture do you enjoy most?",
+    options: [
+      { key: "A", text: "Crisp and refreshing" },
+      { key: "B", text: "Light and juicy" },
+      { key: "C", text: "Rich and smooth" },
+    ],
+  },
+  {
+    kind: "taste",
+    id: "t4",
+    section: "taste",
+    prompt: "When you want something satisfying, you lean toward…",
+    options: [
+      { key: "A", text: "Something sharp and refreshing" },
+      { key: "B", text: "Something sweet and uplifting" },
+      { key: "C", text: "Something comforting and deep" },
+    ],
+  },
+  {
+    kind: "taste",
+    id: "t5",
+    section: "taste",
+    prompt: "After you eat, what finish do you prefer?",
+    options: [
+      { key: "A", text: "Clean and slightly tangy" },
+      { key: "B", text: "Sweet and lingering" },
+      { key: "C", text: "Warm and rounded" },
+    ],
+  },
+];
+
+const ALL_QUESTIONS = [...QUESTIONS, ...TASTE_QUESTIONS] as const;
 
 const SECTIONS: Record<SectionId, { title: string; subtitle: string }> = {
   energy: { title: "Read Your Energy", subtitle: "Calibrating your emotional rhythm." },
   social: { title: "Understand Your Vibe", subtitle: "Tuning social intent and mood direction." },
   flavor: { title: "Reveal Your Pairing", subtitle: "Mapping sensory preference and atmosphere." },
+  taste: { title: "Taste Profiling", subtitle: "Capturing your sensory pull and finish." },
 };
 
 const SCALE: ScaleValue[] = [-2, -1, 0, 1, 2];
@@ -56,21 +127,25 @@ export function QuizFlow() {
   const [stage, setStage] = useState<"overview" | "questions">("overview");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, ScaleValue>>({});
+  const [tasteAnswers, setTasteAnswers] = useState<TasteAnswers>({});
   const [softSelected, setSoftSelected] = useState<ScaleValue | null>(null);
+  const [softTasteSelected, setSoftTasteSelected] = useState<TasteOption | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [startedAt] = useState(() => Date.now());
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const current = QUESTIONS[index];
+  const current = ALL_QUESTIONS[index];
   const sectionMeta = SECTIONS[current.section];
   const activeSection = current.section;
 
-  const isFinalQuestion = index === QUESTIONS.length - 1;
-  const selected = answers[current.id];
+  const isFinalQuestion = index === ALL_QUESTIONS.length - 1;
+  const selected = current.kind === "mood" ? answers[current.id] : undefined;
+  const selectedTaste = current.kind === "taste" ? tasteAnswers[current.id] : undefined;
 
   const handleSelect = (value: ScaleValue) => {
+    if (current.kind !== "mood") return;
     if (pending || isAdvancing) return;
     if (feedbackTimerRef.current) {
       clearTimeout(feedbackTimerRef.current);
@@ -86,7 +161,31 @@ export function QuizFlow() {
       setSoftSelected(null);
       setIsAdvancing(false);
       if (isFinalQuestion) {
-        submitMoodCalibration(nextAnswers);
+        submitMoodCalibration(nextAnswers, tasteAnswers);
+        return;
+      }
+      setIndex((i) => i + 1);
+    }, 180);
+  };
+
+  const handleTasteSelect = (option: TasteOption) => {
+    if (current.kind !== "taste") return;
+    if (pending || isAdvancing) return;
+    if (feedbackTimerRef.current) {
+      clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = null;
+    }
+    setError(null);
+    setIsAdvancing(true);
+    setSoftTasteSelected(option);
+    const nextTasteAnswers = { ...tasteAnswers, [current.id]: option };
+    setTasteAnswers(nextTasteAnswers);
+
+    feedbackTimerRef.current = setTimeout(() => {
+      setSoftTasteSelected(null);
+      setIsAdvancing(false);
+      if (isFinalQuestion) {
+        submitMoodCalibration(answers, nextTasteAnswers);
         return;
       }
       setIndex((i) => i + 1);
@@ -100,6 +199,7 @@ export function QuizFlow() {
       feedbackTimerRef.current = null;
     }
     setSoftSelected(null);
+    setSoftTasteSelected(null);
     setIsAdvancing(false);
     if (index > 0) {
       setIndex((i) => i - 1);
@@ -114,12 +214,17 @@ export function QuizFlow() {
     };
   }, []);
 
-  const submitMoodCalibration = (sourceAnswers: Record<string, ScaleValue>) => {
+  const submitMoodCalibration = (sourceAnswers: Record<string, ScaleValue>, sourceTasteAnswers: TasteAnswers) => {
     const payload = buildQuizPayload(sourceAnswers);
     if (!payload) {
       setError("Complete each mood prompt to continue.");
       return;
     }
+    if (!hasAllTasteAnswers(sourceTasteAnswers)) {
+      setError("Complete each taste prompt to continue.");
+      return;
+    }
+    const tasteLane = deriveTasteLane(sourceTasteAnswers);
     const sessionDurationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
     startTransition(() => {
       void (async () => {
@@ -127,6 +232,7 @@ export function QuizFlow() {
           const result = await submitQuiz({
             legacyAnswers: payload,
             calibrationAnswers: sourceAnswers,
+            tasteLane,
             sessionDurationSeconds,
           });
           if (result.ok === false) {
@@ -207,7 +313,7 @@ export function QuizFlow() {
               <p className="text-xs uppercase tracking-[0.18em] text-white/55">{sectionMeta.title}</p>
               <p className="mt-2 text-sm text-white/65">{sectionMeta.subtitle}</p>
               <div className="mt-4 flex justify-center gap-2">
-                {QUESTIONS.map((q, i) => (
+                {ALL_QUESTIONS.map((q, i) => (
                   <span
                     key={q.id}
                     className={`h-1.5 w-8 rounded-full transition ${
@@ -231,32 +337,56 @@ export function QuizFlow() {
                   {current.prompt}
                 </p>
 
-                <div className="mx-auto mt-10 max-w-xl">
-                  <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.12em] text-white/58 sm:text-sm sm:tracking-[0.16em]">
-                    <span>{current.left}</span>
-                    <span>{current.right}</span>
+                {current.kind === "mood" ? (
+                  <div className="mx-auto mt-10 max-w-xl">
+                    <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.12em] text-white/58 sm:text-sm sm:tracking-[0.16em]">
+                      <span>{current.left}</span>
+                      <span>{current.right}</span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-3 sm:gap-5">
+                      {SCALE.map((value, i) => {
+                        const isActive = selected === value;
+                        const size = i === 0 || i === 4 ? "h-14 w-14" : i === 2 ? "h-10 w-10" : "h-12 w-12";
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => handleSelect(value)}
+                            disabled={pending || isAdvancing}
+                            className={`mx-auto rounded-full border transition duration-200 ${size} ${
+                              isActive
+                                ? "border-white bg-white/20 shadow-[0_0_0_7px_rgba(255,255,255,0.08),0_0_20px_rgba(124,58,237,0.45)]"
+                                : "border-white/40 bg-transparent hover:border-white/70"
+                            } ${softSelected === value ? "scale-110 shadow-[0_0_0_8px_rgba(255,255,255,0.1),0_0_28px_rgba(139,92,246,0.5)]" : ""}`}
+                            aria-label={`Select intensity ${value}`}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-3 sm:gap-5">
-                    {SCALE.map((value, i) => {
-                      const isActive = selected === value;
-                      const size = i === 0 || i === 4 ? "h-14 w-14" : i === 2 ? "h-10 w-10" : "h-12 w-12";
-                      return (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => handleSelect(value)}
-                          disabled={pending || isAdvancing}
-                          className={`mx-auto rounded-full border transition duration-200 ${size} ${
-                            isActive
-                              ? "border-white bg-white/20 shadow-[0_0_0_7px_rgba(255,255,255,0.08),0_0_20px_rgba(124,58,237,0.45)]"
-                              : "border-white/40 bg-transparent hover:border-white/70"
-                          } ${softSelected === value ? "scale-110 shadow-[0_0_0_8px_rgba(255,255,255,0.1),0_0_28px_rgba(139,92,246,0.5)]" : ""}`}
-                          aria-label={`Select intensity ${value}`}
-                        />
-                      );
-                    })}
+                ) : (
+                  <div className="mx-auto mt-10 grid w-full max-w-2xl gap-3">
+                    {current.options.map((option) => (
+                      <button
+                        key={option.key}
+                        type="button"
+                        onClick={() => handleTasteSelect(option.key)}
+                        disabled={pending || isAdvancing}
+                        className={`rounded-2xl border px-4 py-3 text-left text-sm text-white/90 transition sm:px-5 sm:py-3.5 ${
+                          selectedTaste === option.key
+                            ? "border-white/70 bg-white/[0.14] shadow-[0_0_0_6px_rgba(255,255,255,0.08)]"
+                            : "border-white/20 bg-white/[0.04] hover:bg-white/[0.08]"
+                        } ${softTasteSelected === option.key ? "scale-[1.015] shadow-[0_0_22px_rgba(139,92,246,0.45)]" : ""}`}
+                        aria-label={`Select option ${option.key}`}
+                      >
+                        <span className="mr-2 inline-block rounded-full border border-white/25 px-2 py-0.5 text-[11px] font-semibold text-white/70">
+                          {option.key}
+                        </span>
+                        {option.text}
+                      </button>
+                    ))}
                   </div>
-                </div>
+                )}
               </motion.div>
             </AnimatePresence>
 
@@ -303,6 +433,10 @@ function buildQuizPayload(answers: Record<string, ScaleValue>): QuizAnswers | nu
     q4: mental,
     q5: intent,
   };
+}
+
+function hasAllTasteAnswers(answers: TasteAnswers) {
+  return TASTE_QUESTIONS.every((q) => answers[q.id] === "A" || answers[q.id] === "B" || answers[q.id] === "C");
 }
 
 function average(values: number[]) {

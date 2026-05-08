@@ -26,6 +26,7 @@ type MoodResultView = {
     alcoholCategory?: string;
     imageUrl?: string | null;
     squareCheckoutUrl?: string | null;
+      tasteLane?: "lemon" | "strawberry" | "apple";
     secondary?: Array<{ cocktailName: string; flavorNotes: string }>;
   };
 };
@@ -99,6 +100,7 @@ export default async function ResultPage({
   const resolvedImage = moodResult?.recommendation_payload?.imageUrl ?? recommendation.cocktailImage;
   const resolvedFlavor = moodResult?.recommendation_payload?.flavorNotes ?? "Balanced emotional flavor profile";
   const resolvedDescription = moodResult?.recommendation_payload?.description ?? recommendation.pairingLine;
+  const resolvedTasteLane = moodResult?.recommendation_payload?.tasteLane ?? null;
   const checkoutUrl = moodResult?.recommendation_payload?.squareCheckoutUrl ?? null;
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
 
@@ -143,6 +145,11 @@ export default async function ResultPage({
             <p className="text-sm text-white/60">
               <span className="text-white/80">Flavor notes:</span> {resolvedFlavor}
             </p>
+            {resolvedTasteLane ? (
+              <p className="text-sm text-white/60">
+                <span className="text-white/80">Taste lane:</span> {resolvedTasteLane}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-5 rounded-3xl border border-white/15 bg-white/[0.04] p-5">
