@@ -124,7 +124,7 @@ const CARD_STEPS = [
 ] as const;
 
 export function QuizFlow() {
-  const [stage, setStage] = useState<"overview" | "questions">("overview");
+  const [stage, setStage] = useState<"overview" | "questions" | "ready">("overview");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, ScaleValue>>({});
   const [tasteAnswers, setTasteAnswers] = useState<TasteAnswers>({});
@@ -161,7 +161,7 @@ export function QuizFlow() {
       setSoftSelected(null);
       setIsAdvancing(false);
       if (isFinalQuestion) {
-        submitMoodCalibration(nextAnswers, tasteAnswers);
+        setStage("ready");
         return;
       }
       setIndex((i) => i + 1);
@@ -185,7 +185,7 @@ export function QuizFlow() {
       setSoftTasteSelected(null);
       setIsAdvancing(false);
       if (isFinalQuestion) {
-        submitMoodCalibration(answers, nextTasteAnswers);
+        setStage("ready");
         return;
       }
       setIndex((i) => i + 1);
@@ -300,7 +300,7 @@ export function QuizFlow() {
               </button>
             </div>
           </motion.section>
-        ) : (
+        ) : stage === "questions" ? (
           <motion.section
             key="questions"
             initial={{ opacity: 0, y: 16 }}
@@ -406,6 +406,50 @@ export function QuizFlow() {
               >
                 ←
               </button>
+            </div>
+          </motion.section>
+        ) : (
+          <motion.section
+            key="ready"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col justify-center pb-8 pt-10"
+          >
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] px-6 py-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:px-10">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/55">All Set</p>
+              <h2 className="mx-auto mt-4 max-w-2xl font-[family-name:var(--font-serif)] text-[clamp(1.5rem,4.6vw,2.4rem)] font-semibold leading-tight text-white">
+                All responses received.
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-sm text-white/70">
+                Your mood profile is ready. Proceed to see your mood and pairing.
+              </p>
+
+              {error ? (
+                <p className="mx-auto mt-5 w-full max-w-xl rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-100">
+                  {error}
+                </p>
+              ) : null}
+
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStage("questions")}
+                  disabled={pending}
+                  className="rounded-xl border border-white/20 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white/85 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Review Answers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => submitMoodCalibration(answers, tasteAnswers)}
+                  disabled={pending}
+                  className="rounded-xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {pending ? "Revealing your mood..." : "Proceed to See Mood"}
+                </button>
+              </div>
             </div>
           </motion.section>
         )}
