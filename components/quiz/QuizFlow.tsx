@@ -127,10 +127,6 @@ export function QuizFlow() {
               <p className="font-[family-name:var(--font-serif)] text-[clamp(1.7rem,6vw,3rem)] font-semibold tracking-tight text-white">
                 Read your energy before the night begins.
               </p>
-              <p className="mx-auto mt-4 max-w-xl text-pretty text-sm leading-relaxed text-white/70 sm:text-base">
-                This is a cinematic mood calibration, not a survey. A few intentional prompts and HiddenSense™ tunes your
-                pairing.
-              </p>
             </div>
 
             <div className="mt-10 grid gap-4 md:grid-cols-3">
