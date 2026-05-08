@@ -29,7 +29,7 @@ export async function getRecommendationForMood({
   scores: EmotionalScores;
   tasteLane: TasteLane;
 }): Promise<RecommendationEngineResult> {
-  const adminFirst = await findAdminRecommendation(mood, tasteLane);
+  const adminFirst = await findAdminRecommendation(mood, scores, tasteLane);
   if (adminFirst) return adminFirst;
 
   const internal = getRecommendation(mood.key);
@@ -71,18 +71,25 @@ export async function getRecommendationForMood({
   };
 }
 
-async function findAdminRecommendation(mood: MoodArchetype, tasteLane: TasteLane): Promise<RecommendationEngineResult | null> {
+async function findAdminRecommendation(
+  mood: MoodArchetype,
+  scores: EmotionalScores,
+  tasteLane: TasteLane,
+): Promise<RecommendationEngineResult | null> {
   const sb = getSupabaseAdmin();
+  // Primary storefront: highest-priority active admin row wins for all users while catalog is gated (no mood-tag filter).
   const { data } = await sb
     .from("cocktail_recommendations")
     .select("*")
     .eq("active", true)
-    .contains("mood_tags", [mood.key])
     .order("priority_score", { ascending: false })
-    .limit(3);
+    .limit(8);
 
-  if (!data || data.length === 0) return null;
+  if (!data?.length) return null;
+
   const primary = pickByTaste(data, tasteLane) ?? data[0];
+  const alternatePool = data.filter((r) => r.id !== primary.id);
+
   return {
     source: "admin",
     recommendationId: primary.id,
@@ -90,12 +97,12 @@ async function findAdminRecommendation(mood: MoodArchetype, tasteLane: TasteLane
     alcoholCategory: primary.alcohol_category,
     imageUrl: primary.image_url,
     flavorNotes: primary.flavor_profile,
-    foodPairings: primary.food_pairings,
+    foodPairings: primary.food_pairings?.length ? primary.food_pairings : [],
     description: primary.description,
     squareCheckoutUrl: primary.square_checkout_url,
-    emotionalReasoning: buildReasoning(mood, undefined, tasteLane),
+    emotionalReasoning: buildReasoning(mood, scores, tasteLane),
     tasteLane,
-    secondary: data.slice(1, 3).map((r) => ({
+    secondary: alternatePool.slice(0, 2).map((r) => ({
       cocktailName: r.cocktail_name,
       flavorNotes: r.flavor_profile,
       source: "admin",
