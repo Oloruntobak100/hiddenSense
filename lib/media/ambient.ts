@@ -4,8 +4,7 @@
  */
 export const AMBIENT_IMAGES = {
   /** Moody dark bar / cocktail — strong negative space for headlines. */
-  homeHero:
-    "https://images.unsplash.com/photo-1536935338788-deb5d6e596c4?auto=format&fit=crop&w=2400&q=85",
+  homeHero: "/home-bg-wine.png",
   /** Wine rack / cellar depth — “vault” invitation for the gate. */
   gateVault:
     "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=2400&q=85",

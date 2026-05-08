@@ -46,10 +46,10 @@ export function FixedAmbientBackground({
 function HeroScrim() {
   return (
     <>
-      <div className="absolute inset-0 bg-gradient-to-b from-[#09080f]/88 via-[#09080f]/68 to-[#09080f]/90" />
-      <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_18%_12%,rgba(124,58,237,0.34),transparent_54%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(95%_95%_at_88%_38%,rgba(234,88,12,0.18),transparent_48%)]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#09080f]/95 via-transparent to-[#09080f]/40" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#09080f]/62 via-[#09080f]/44 to-[#09080f]/66" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_18%_12%,rgba(124,58,237,0.2),transparent_54%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(95%_95%_at_88%_38%,rgba(234,88,12,0.12),transparent_48%)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#09080f]/72 via-transparent to-[#09080f]/20" />
     </>
   );
 }

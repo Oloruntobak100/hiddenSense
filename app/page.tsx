@@ -12,7 +12,7 @@ export default function Home() {
         src={AMBIENT_IMAGES.homeHero}
         preset="hero"
         priority
-        objectPosition="center 55%"
+        objectPosition="center 42%"
       />
       <HomeLanding showTesterLogin={showTesterLogin} />
     </>

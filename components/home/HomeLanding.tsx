@@ -11,15 +11,15 @@ export function HomeLanding({ showTesterLogin }: Props) {
       {/* Tech overlay: grid + scanlines + network (above photo, below UI) */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[5] bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] bg-[length:56px_56px] [mask-image:radial-gradient(ellipse_85%_65%_at_50%_38%,black_20%,transparent_72%)]"
+        className="pointer-events-none fixed inset-0 z-[5] bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[length:56px_56px] [mask-image:radial-gradient(ellipse_85%_65%_at_50%_38%,black_20%,transparent_72%)]"
       />
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[5] opacity-[0.07] [background:repeating-linear-gradient(0deg,rgba(255,255,255,0.09)_0px,rgba(255,255,255,0.09)_1px,transparent_1px,transparent_3px)]"
+        className="pointer-events-none fixed inset-0 z-[5] opacity-[0.04] [background:repeating-linear-gradient(0deg,rgba(255,255,255,0.09)_0px,rgba(255,255,255,0.09)_1px,transparent_1px,transparent_3px)]"
       />
       <svg
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[5] h-full w-full opacity-[0.14] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_42%,black,transparent)]"
+        className="pointer-events-none fixed inset-0 z-[5] h-full w-full opacity-[0.08] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_42%,black,transparent)]"
       >
         <defs>
           <linearGradient id="hs-net" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -47,7 +47,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
       </svg>
 
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/75 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/55 backdrop-blur-xl">
           <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6">
             <Link href="/" className="flex items-center gap-3 text-white transition hover:opacity-90">
               <LogoMark className="h-10 w-8 object-contain sm:h-11 sm:w-9" />
@@ -88,7 +88,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
 
         <main>
           <section className="mx-auto max-w-5xl px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:pt-24">
-            <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.45rem,4.3vw,2.9rem)] font-extrabold uppercase leading-[1.08] tracking-[0.06em]">
+            <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.25rem,3.8vw,2.45rem)] font-extrabold uppercase leading-[1.1] tracking-[0.055em]">
               <span className="block text-white">How you feel</span>
               <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
                 shapes every pour
@@ -96,27 +96,27 @@ export function HomeLanding({ showTesterLogin }: Props) {
               <span className="mt-2 block text-white/95">&amp; every bite</span>
             </h1>
 
-            <p className="mx-auto mt-8 max-w-2xl text-pretty text-base leading-relaxed text-white/78 sm:text-lg">
+            <p className="mx-auto mt-7 max-w-2xl text-pretty text-sm leading-relaxed text-white/76 sm:text-base">
               HiddenSense™ translates the moment—five quick taps—into cocktail and plate inspiration from Hidden Spirits.
               Curated, human-feeling, built for right now.
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row sm:gap-4">
               <Link
                 href="/gate"
-                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
+                className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl bg-[var(--hs-accent)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
               >
-                <span aria-hidden className="text-lg leading-none">
+                <span aria-hidden className="text-base leading-none">
                   ⚡
                 </span>
                 Get started
-                <span aria-hidden className="text-lg">
+                <span aria-hidden className="text-base">
                   →
                 </span>
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.04] px-8 py-3.5 text-[15px] font-semibold text-white/90 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.08] sm:w-auto"
+                className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/[0.04] px-6 py-3 text-[14px] font-semibold text-white/88 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.08] sm:w-auto"
               >
                 How it works
               </a>
@@ -224,7 +224,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
             </div>
           </section>
 
-          <footer className="border-t border-white/[0.08] bg-[#09080f]/80 py-12 backdrop-blur-md">
+          <footer className="border-t border-white/[0.08] bg-[#09080f]/62 py-12 backdrop-blur-md">
             <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-6">
               <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
                 <Link href="/gate" className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline">
