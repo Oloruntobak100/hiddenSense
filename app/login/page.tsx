@@ -16,7 +16,9 @@ export default function LoginPage() {
       />
       <div className="rounded-3xl border border-white/10 bg-black/20 p-4 shadow-[0_30px_90px_-40px_rgba(0,0,0,0.8)] backdrop-blur-[2px] sm:p-5">
         <div className="mb-4 flex justify-center">
-          <LogoMark />
+          <Link href="/" className="rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]">
+            <LogoMark />
+          </Link>
         </div>
         <p className="text-center font-[family-name:var(--font-serif)] text-3xl font-semibold tracking-tight text-white sm:text-[2.05rem]">
           HiddenSense Access
