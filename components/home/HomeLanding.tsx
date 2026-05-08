@@ -88,15 +88,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
 
         <main>
           <section className="mx-auto max-w-5xl px-5 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20 md:pt-24">
-            <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-              </span>
-              Mood-led pairings • Hidden Spirits
-            </p>
-
-            <h1 className="font-[family-name:var(--font-display)] mt-8 text-[clamp(1.65rem,5vw,3.35rem)] font-extrabold uppercase leading-[1.08] tracking-[0.06em]">
+            <h1 className="font-[family-name:var(--font-display)] mt-5 text-[clamp(1.45rem,4.3vw,2.9rem)] font-extrabold uppercase leading-[1.08] tracking-[0.06em]">
               <span className="block text-white">How you feel</span>
               <span className="mt-2 block bg-gradient-to-r from-[var(--hs-accent)] via-sky-400 to-[var(--hs-accent-strong)] bg-clip-text text-transparent">
                 shapes every pour
