@@ -113,6 +113,17 @@ export function QuizFlow() {
 
   return (
     <div className="relative z-10 min-h-[100dvh] px-5 py-8 sm:px-8">
+      <div className="absolute left-5 top-6 z-20 sm:left-8 sm:top-8">
+        <a
+          href="/intro"
+          className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-white/85 backdrop-blur-sm transition hover:bg-white/[0.1] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
+        >
+          <span aria-hidden className="text-base leading-none">
+            ←
+          </span>
+          Back
+        </a>
+      </div>
       <AnimatePresence mode="wait">
         {stage === "overview" ? (
           <motion.section
