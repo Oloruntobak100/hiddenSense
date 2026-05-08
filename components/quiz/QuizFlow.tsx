@@ -91,6 +91,13 @@ export function QuizFlow() {
     setIndex((i) => i + 1);
   };
 
+  const goPrevious = () => {
+    if (pending) return;
+    if (index > 0) {
+      setIndex((i) => i - 1);
+    }
+  };
+
   const submitMoodCalibration = () => {
     const payload = buildQuizPayload(answers);
     if (!payload) {
@@ -238,7 +245,15 @@ export function QuizFlow() {
               </p>
             ) : null}
 
-            <div className="mt-8 flex items-center justify-center">
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={goPrevious}
+                disabled={index === 0 || pending}
+                className="rounded-2xl border border-white/18 bg-white/[0.03] px-7 py-3 text-sm font-medium text-white/85 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                Previous
+              </button>
               <button
                 type="button"
                 onClick={goNext}
