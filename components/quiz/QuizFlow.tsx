@@ -487,7 +487,7 @@ export function QuizFlow() {
                   </h2>
                   <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
                     Sign in or create a free account. We&apos;ll email you a magic link—tap it on this device to finish and
-                    see your pairing. Your session stays signed in after that (no password to remember).
+                    see your pairing.
                   </p>
                 </header>
 
