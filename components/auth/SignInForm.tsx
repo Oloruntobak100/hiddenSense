@@ -90,7 +90,10 @@ export function SignInForm({
       });
 
       if (signErr) {
-        setError(signErr.message);
+        const msg = signErr.message.toLowerCase().includes("rate")
+          ? "Too many sign-in emails were sent recently. Wait a few minutes, or check your inbox for an existing link."
+          : signErr.message;
+        setError(msg);
         return;
       }
 

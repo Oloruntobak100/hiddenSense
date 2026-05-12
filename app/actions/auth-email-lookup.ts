@@ -10,7 +10,7 @@ export type RegisteredEmailResult =
   | { ok: false; error: string };
 
 /**
- * Whether an email already belongs to a profile (returning user).
+ * Whether an email already belongs to someone (profile row or Auth user).
  * Used before sending magic-link OTP so we don't email non-accounts on Sign in
  * or duplicate signups on Sign up.
  */
@@ -22,12 +22,12 @@ export async function checkRegisteredEmail(rawEmail: string): Promise<Registered
   const email = parsed.data;
 
   const admin = getSupabaseAdmin();
-  const { data, error } = await admin.from("profiles").select("id").ilike("email", email).maybeSingle();
+  const { data, error } = await admin.rpc("registered_email_exists", { lookup_email: email });
 
   if (error) {
     console.error("[checkRegisteredEmail]", error);
     return { ok: false, error: "Could not verify that email. Try again." };
   }
 
-  return { ok: true, registered: !!data };
+  return { ok: true, registered: Boolean(data) };
 }

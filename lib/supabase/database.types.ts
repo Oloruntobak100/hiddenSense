@@ -256,7 +256,10 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      registered_email_exists: {
+        Args: { lookup_email: string };
+        Returns: boolean;
+      };
     };
     Enums: {
       [_ in never]: never;
