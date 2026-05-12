@@ -464,8 +464,12 @@ export function QuizFlow() {
           aria-modal="true"
           aria-labelledby="quiz-signup-title"
         >
-          <div className="flex min-h-[100dvh] w-full items-end justify-center bg-black/75 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center sm:p-6">
-            <div className="relative w-full max-w-md shrink-0 sm:max-w-lg">
+          <div className="relative flex min-h-[100dvh] w-full items-end justify-center bg-[linear-gradient(162deg,#09080f_6%,#161022_42%,#1a1217_72%,#0c0a13_100%)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center sm:p-6">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_120%_at_10%_8%,rgba(124,58,237,0.26),transparent_52%),radial-gradient(90%_90%_at_92%_30%,rgba(217,119,6,0.15),transparent_50%),radial-gradient(90%_90%_at_50%_100%,rgba(37,99,235,0.14),transparent_48%)]"
+            />
+            <div className="relative z-10 w-full max-w-md shrink-0 sm:max-w-lg">
               <button
                 type="button"
                 onClick={() => setSignupOpen(false)}
