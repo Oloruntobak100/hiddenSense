@@ -1,5 +1,5 @@
 /** Allowlisted in-app redirect target after email confirmation / magic link. */
-export function getSafeInternalNext(next: string | null | undefined, fallback = "/intro"): string {
+export function getSafeInternalNext(next: string | null | undefined, fallback = "/dashboard"): string {
   if (!next || typeof next !== "string") return fallback;
   const t = next.trim();
   if (!t.startsWith("/") || t.startsWith("//")) return fallback;

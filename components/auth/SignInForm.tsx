@@ -21,7 +21,7 @@ export function SignInForm({
 }: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = getSafeInternalNext(searchParams.get("next"), "/intro");
+  const nextPath = getSafeInternalNext(searchParams.get("next"), "/dashboard");
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);

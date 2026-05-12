@@ -37,10 +37,10 @@ export default async function AdminPage() {
             HiddenSense Admin
           </h1>
           <Link
-            href="/intro"
+            href="/dashboard"
             className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2.5 text-sm hover:bg-white/[0.1] sm:self-auto"
           >
-            Back to Intro
+            Back to dashboard
           </Link>
         </div>
 
@@ -77,6 +77,10 @@ export default async function AdminPage() {
 
               <label className="grid gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Category</span>
+                <p className="text-[10px] leading-snug text-white/40">
+                  Under-21 guests only see listings saved as <strong className="text-white/70">Non-alcoholic</strong> (Whiskey,
+                  Wine, RTD Cocktail, etc. are never suggested to minors).
+                </p>
                 <select
                   name="alcohol_category"
                   required

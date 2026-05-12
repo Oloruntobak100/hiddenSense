@@ -14,7 +14,7 @@ export default async function GatePage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const sp = await searchParams;
-  const next = getSafeInternalNext(sp.next ?? null, "/intro");
+  const next = getSafeInternalNext(sp.next ?? null, "/dashboard");
 
   return (
     <>

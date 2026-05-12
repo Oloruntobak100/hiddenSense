@@ -1,4 +1,5 @@
 import "server-only";
+import { isAlcoholCategoryAllowedForMinor } from "@/lib/admin/alcohol-categories";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { MoodArchetype } from "@/lib/intelligence/mood-archetypes";
 import type { EmotionalScores } from "@/lib/intelligence/scoring";
@@ -110,7 +111,7 @@ async function findAdminRecommendation(
 
   let pool = data;
   if (opts.minorOnly) {
-    pool = data.filter((r) => String(r.alcohol_category ?? "").trim().toLowerCase() === "non-alcoholic");
+    pool = data.filter((r) => isAlcoholCategoryAllowedForMinor(String(r.alcohol_category ?? "")));
   }
   if (!pool.length) return null;
 

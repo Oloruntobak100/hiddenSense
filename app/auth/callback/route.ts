@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const nextRaw = url.searchParams.get("next");
-  const nextPath = getSafeInternalNext(nextRaw, "/intro");
+  const nextPath = getSafeInternalNext(nextRaw, "/dashboard");
   const siteOrigin = url.origin;
 
   if (!code) {

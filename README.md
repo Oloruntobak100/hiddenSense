@@ -85,7 +85,7 @@ If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is
 
 **`/login`** — Magic link (`signInWithOtp`) for returning users, same callback + optional `?next=`.
 
-Middleware protects **`/intro`**, **`/profile`**, **`/result/*`**, **`/feedback/*`** (including **`/feedback/*/mood`**). **`/quiz`** and **`/quiz/complete`** are public. **`/auth/callback`** is not gated by the auth redirect.
+Middleware protects **`/dashboard`**, **`/intro`** (redirects to `/dashboard`), **`/profile`**, **`/result/*`**, **`/feedback/*`** (including **`/feedback/*/mood`**). **`/quiz`** and **`/quiz/complete`** are public. **`/auth/callback`** is not gated by the auth redirect. Signed-in visitors to **`/`** are redirected to **`/dashboard`**.
 
 ## Supabase Auth settings
 

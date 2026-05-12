@@ -18,7 +18,7 @@ type SignUpFormProps = {
   showSwitchLink?: boolean;
   switchHref?: string;
   compact?: boolean;
-  /** Post-confirmation redirect (allowlisted). Defaults from `?next=` or `/intro`. */
+  /** Post-confirmation redirect (allowlisted). Defaults from `?next=` or `/dashboard`. */
   authNextPath?: string;
 };
 
@@ -33,7 +33,7 @@ export function SignUpForm({
   const nextFromUrl = searchParams.get("next");
   const authNextPath = getSafeInternalNext(
     authNextPathProp ?? nextFromUrl ?? null,
-    "/intro",
+    "/dashboard",
   );
 
   const [error, setError] = useState<string | null>(null);

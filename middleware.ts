@@ -51,6 +51,8 @@ export async function middleware(request: NextRequest) {
   const needsAuth =
     !isPublicQuiz &&
     (pathname === "/intro" ||
+      pathname === "/dashboard" ||
+      pathname.startsWith("/dashboard/") ||
       pathname === "/profile" ||
       pathname.startsWith("/result/") ||
       pathname.startsWith("/feedback/"));
@@ -79,6 +81,8 @@ export const config = {
     "/quiz",
     "/quiz/:path*",
     "/intro",
+    "/dashboard",
+    "/dashboard/:path*",
     "/profile",
     "/result/:path*",
     "/feedback/:path*",
