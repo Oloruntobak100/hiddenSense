@@ -81,9 +81,10 @@ export function ResultActions({
 }
 
 function PrimaryCtaFeedback({ sessionId }: { sessionId: string }) {
+  const returnTo = encodeURIComponent(`/result/${sessionId}`);
   return (
     <Link
-      href={`/feedback/${sessionId}`}
+      href={`/feedback/${sessionId}?returnTo=${returnTo}`}
       className="inline-flex items-center justify-center rounded-2xl border border-transparent bg-black px-8 py-4 text-center text-base font-semibold text-white underline-offset-4 hover:underline"
     >
       Rate this recommendation (next step)

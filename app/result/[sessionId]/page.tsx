@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { DEMO_SESSION_ID } from "@/lib/session/constants";
 import { getDemoResultPayload } from "@/lib/session/demo";
@@ -11,6 +12,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { upsertProfileFromAuthUser } from "@/lib/profile/sync-from-user";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { PurchaseCta } from "@/components/result/PurchaseCta";
+import { BackNavButton } from "@/components/navigation/BackNavButton";
 
 export const dynamic = "force-dynamic";
 
@@ -188,14 +190,21 @@ export default async function ResultPage({
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
   const secondary = (p?.secondary ?? []).slice(0, 3);
 
+  const backFallback = (await getAuthUserId()) ? "/dashboard" : "/";
+
   return (
     <main className="mx-auto min-h-[100dvh] max-w-6xl pb-[max(7rem,env(safe-area-inset-bottom)+4rem)] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2.5rem,env(safe-area-inset-top)+1.5rem)] sm:pb-28 sm:pl-8 sm:pr-8 sm:pt-14 lg:max-w-[72rem]">
-      <Link
-        href="/quiz"
-        className="mb-6 inline-flex min-h-11 items-center text-sm font-medium text-white/55 transition active:text-white hover:text-white sm:mb-8"
-      >
-        ← Retake pairing
-      </Link>
+      <div className="mb-6 flex flex-wrap items-center gap-3 sm:mb-8">
+        <Suspense fallback={<div className="h-11 w-24 shrink-0 rounded-full bg-white/10" aria-hidden />}>
+          <BackNavButton fallbackHref={backFallback} />
+        </Suspense>
+        <Link
+          href="/quiz"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-white/55 transition active:text-white hover:text-white"
+        >
+          ← Retake pairing
+        </Link>
+      </div>
 
       <article className="overflow-hidden rounded-2xl border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] shadow-2xl shadow-black/60 sm:rounded-[2rem]">
         <div className="border-b border-white/[0.08] px-5 py-8 sm:px-10 sm:py-12">
@@ -315,7 +324,7 @@ export default async function ResultPage({
             />
             {moodResult?.id ? (
               <Link
-                href={`/feedback/${sessionId}/mood?moodResultId=${encodeURIComponent(moodResult.id)}`}
+                href={`/feedback/${sessionId}/mood?moodResultId=${encodeURIComponent(moodResult.id)}&returnTo=${encodeURIComponent(resultPath)}`}
                 className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/22 bg-white/[0.06] px-6 py-3 text-center text-sm font-semibold text-white/90 transition hover:border-white/35 hover:bg-white/[0.1] sm:min-w-[220px]"
               >
                 Rate how we read your mood

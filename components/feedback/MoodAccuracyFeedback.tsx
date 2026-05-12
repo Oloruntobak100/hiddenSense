@@ -68,7 +68,9 @@ export function MoodAccuracyFeedback({ moodResultId, sessionId }: Props) {
           setError(res.error);
           return;
         }
-        router.push(`/feedback/${sessionId}`);
+        router.push(
+          `/feedback/${sessionId}?returnTo=${encodeURIComponent(`/result/${sessionId}?moodResultId=${encodeURIComponent(moodResultId)}`)}`,
+        );
         router.refresh();
       })();
     });

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { LogoMark } from "@/components/brand/Logo";
 import { MoodAccuracyFeedback } from "@/components/feedback/MoodAccuracyFeedback";
+import { BackNavButton } from "@/components/navigation/BackNavButton";
 import { DEMO_SESSION_ID } from "@/lib/session/constants";
 import { getQuizSessionForProfile } from "@/lib/data/quiz-session";
 import { getCurrentProfileId } from "@/lib/auth/current-profile";
@@ -49,8 +51,15 @@ export default async function MoodFeedbackPage({
     notFound();
   }
 
+  const resultReturnHref = `/result/${sessionId}?moodResultId=${encodeURIComponent(moodResultId)}`;
+
   return (
     <main className="relative z-10 mx-auto min-h-[100dvh] max-w-2xl px-6 py-12 pb-24 text-white">
+      <div className="mb-6 flex justify-start">
+        <Suspense fallback={<div className="h-11 w-24 rounded-full bg-white/10" aria-hidden />}>
+          <BackNavButton fallbackHref={resultReturnHref} />
+        </Suspense>
+      </div>
       <div className="mb-8 flex justify-center">
         <LogoMark />
       </div>
@@ -67,8 +76,8 @@ export default async function MoodFeedbackPage({
         <MoodAccuracyFeedback moodResultId={moodResultId} sessionId={sessionId} />
       </div>
 
-      <p className="mt-10 text-center text-sm text-white/55">
-        <Link href={`/result/${sessionId}`} className="underline-offset-4 hover:text-white hover:underline">
+      <p className="mt-10 text-center text-sm text-white/65">
+        <Link href={resultReturnHref} className="text-white/85 underline-offset-4 hover:text-white hover:underline">
           Back to result
         </Link>
       </p>
