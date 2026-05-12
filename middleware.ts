@@ -1,11 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAdminEmail } from "@/lib/auth/admin-allowlist";
 import { PROFILE_COOKIE } from "@/lib/session/constants";
 import { isUuid } from "@/lib/session/uuid";
-
-const ADMIN_EMAIL = "kaytoba49@gmail.com";
-const isAdminEmail = (email?: string | null) =>
-  !!email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
 function allowTesterCookieBypass(request: NextRequest): boolean {
   if (
@@ -19,7 +16,7 @@ function allowTesterCookieBypass(request: NextRequest): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
