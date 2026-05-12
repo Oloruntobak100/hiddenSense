@@ -53,6 +53,16 @@ export function SignInForm({
       const base = getBrowserAuthBaseUrl();
       const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
+      const lookup = await checkRegisteredEmail(email);
+      if (!lookup.ok) {
+        setError(lookup.error);
+        return;
+      }
+      if (!lookup.registered) {
+        setError("We don't have an account for that email yet. Open the Sign up tab to create one.");
+        return;
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -66,16 +76,6 @@ export function SignInForm({
         setError(
           `You're signed in as ${session.user.email}. Sign out first if you need to use a different email.`,
         );
-        return;
-      }
-
-      const lookup = await checkRegisteredEmail(email);
-      if (!lookup.ok) {
-        setError(lookup.error);
-        return;
-      }
-      if (!lookup.registered) {
-        setError("We don't have an account for that email yet. Open the Sign up tab to create one.");
         return;
       }
 

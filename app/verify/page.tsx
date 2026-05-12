@@ -24,8 +24,8 @@ export default async function VerifyPage({
       <h1 className="text-center font-[family-name:var(--font-serif)] text-3xl font-semibold tracking-tight text-[var(--hs-accent-strong)] sm:text-4xl">
         Check your email
       </h1>
-      <p className="mt-3 text-center text-sm text-[var(--hs-muted)]">
-        We sent a confirmation link to <span className="font-medium text-[var(--hs-ink)]">{email}</span>. Open it on this
+      <p className="mt-3 text-center text-sm text-white/75">
+        We sent a confirmation link to <span className="font-semibold text-white">{email}</span>. Open it on this
         device to finish signing in—there is nothing to paste here.
       </p>
 
@@ -36,12 +36,12 @@ export default async function VerifyPage({
         </p>
       </div>
 
-      <p className="mt-10 text-center text-sm text-[var(--hs-muted)]">
-        <Link href="/login" className="underline-offset-4 hover:underline">
+      <p className="mt-10 text-center text-sm text-white/80">
+        <Link href="/login" className="text-white/85 underline-offset-4 hover:text-white hover:underline">
           Back to sign in
         </Link>
-        <span className="mx-2 text-white/30">·</span>
-        <Link href="/" className="underline-offset-4 hover:text-white hover:underline">
+        <span className="mx-2 text-white/35">·</span>
+        <Link href="/" className="text-white/85 underline-offset-4 hover:text-white hover:underline">
           Home
         </Link>
       </p>
