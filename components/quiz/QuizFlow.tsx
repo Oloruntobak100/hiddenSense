@@ -8,7 +8,7 @@ import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
 import { deriveTasteLane, type TasteAnswers, type TasteOption } from "@/lib/intelligence/taste-lane";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { LogoMark } from "@/components/brand/Logo";
-import { SignUpForm } from "@/components/gate/SignUpForm";
+import { EmbeddedAuthPanel } from "@/components/auth/EmbeddedAuthPanel";
 import { PENDING_QUIZ_STORAGE_KEY, type PendingQuizV1 } from "@/lib/quiz/pending-quiz";
 
 type SectionId = "energy" | "social" | "flavor" | "taste";
@@ -483,11 +483,11 @@ export function QuizFlow() {
                     id="quiz-signup-title"
                     className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55"
                   >
-                    Create account
+                    Continue
                   </h2>
                   <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
-                    We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™
-                    pairing.
+                    Sign in or create a free account. We&apos;ll email you a magic link—tap it on this device to finish and
+                    see your pairing. Your session stays signed in after that (no password to remember).
                   </p>
                 </header>
 
@@ -497,7 +497,7 @@ export function QuizFlow() {
                     className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--hs-accent)]/45 to-transparent"
                   />
                   <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading form…</p>}>
-                    <SignUpForm showSwitchLink={false} compact authNextPath="/quiz/complete" />
+                    <EmbeddedAuthPanel authNextPath="/quiz/complete" />
                   </Suspense>
                 </div>
               </div>

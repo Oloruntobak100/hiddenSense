@@ -1,21 +1,45 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { SignUpForm } from "@/components/gate/SignUpForm";
 
 type AuthMode = "signin" | "signup";
 
-export function AuthTabs() {
+type AuthTabsProps = {
+  /** `/login` uses URL `?mode=`; modals use local state only. */
+  variant?: "page" | "embedded";
+  /** Allowlisted post-auth path (e.g. `/quiz/complete`). */
+  authNextPath?: string;
+  /** Initial tab when `variant` is `embedded`. */
+  defaultMode?: AuthMode;
+  /** Prefill sign-in email (sessionStorage hint on this device). */
+  defaultEmailHint?: string;
+};
+
+export function AuthTabs({
+  variant = "page",
+  authNextPath,
+  defaultMode = "signin",
+  defaultEmailHint = "",
+}: AuthTabsProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const mode = useMemo<AuthMode>(
+  const [embeddedMode, setEmbeddedMode] = useState<AuthMode>(defaultMode);
+
+  const pageMode = useMemo<AuthMode>(
     () => ((searchParams.get("mode") ?? "").toLowerCase() === "signup" ? "signup" : "signin"),
     [searchParams],
   );
 
+  const mode = variant === "embedded" ? embeddedMode : pageMode;
+
   function goMode(next: AuthMode) {
+    if (variant === "embedded") {
+      setEmbeddedMode(next);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (next === "signup") {
       params.set("mode", "signup");
@@ -60,11 +84,17 @@ export function AuthTabs() {
       <div className="border-t border-black/5 p-4 sm:p-5">
         {mode === "signin" ? (
           <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading…</p>}>
-            <SignInForm showSwitchLink={false} compact />
+            <SignInForm
+              showSwitchLink={false}
+              compact
+              authNextPath={authNextPath}
+              showHomeLink={variant === "page"}
+              defaultEmailHint={defaultEmailHint}
+            />
           </Suspense>
         ) : (
           <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading…</p>}>
-            <SignUpForm showSwitchLink={false} compact />
+            <SignUpForm showSwitchLink={false} compact authNextPath={authNextPath} />
           </Suspense>
         )}
       </div>

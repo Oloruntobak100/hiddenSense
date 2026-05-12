@@ -6,22 +6,33 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
+import { writeQuizLastAuthEmail } from "@/lib/auth/quiz-auth-cue";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 type SignInFormProps = {
   showSwitchLink?: boolean;
   switchHref?: string;
   compact?: boolean;
+  /** When set, overrides `?next=` for post–magic-link redirect. */
+  authNextPath?: string;
+  showHomeLink?: boolean;
+  /** Prefill email (e.g. last magic link on this tab). */
+  defaultEmailHint?: string;
 };
 
 export function SignInForm({
   showSwitchLink = true,
   switchHref = "/login?mode=signup",
   compact = false,
+  authNextPath: authNextPathProp,
+  showHomeLink = true,
+  defaultEmailHint = "",
 }: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = getSafeInternalNext(searchParams.get("next"), "/dashboard");
+  const nextPath = authNextPathProp
+    ? getSafeInternalNext(authNextPathProp, "/dashboard")
+    : getSafeInternalNext(searchParams.get("next"), "/dashboard");
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -52,6 +63,8 @@ export function SignInForm({
         return;
       }
 
+      writeQuizLastAuthEmail(email);
+
       router.push(`/verify?email=${encodeURIComponent(email)}`);
       router.refresh();
     } catch {
@@ -80,10 +93,12 @@ export function SignInForm({
         </label>
         <input
           id="email"
+          key={defaultEmailHint || "email-empty"}
           name="email"
           type="email"
           autoComplete="email"
           required
+          defaultValue={defaultEmailHint}
           className="w-full rounded-xl border border-black/[0.09] bg-white px-3.5 py-2.5 text-[15px] leading-snug text-[var(--hs-ink)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] outline-none placeholder:text-black/35 focus:border-[var(--hs-accent)] focus:ring-2 focus:ring-[var(--hs-accent)]/18"
           placeholder="you@example.com"
         />
@@ -109,6 +124,7 @@ export function SignInForm({
         </p>
       ) : null}
 
+      {showHomeLink ? (
       <p className="text-center text-[12px] text-[var(--hs-muted)]">
         <button
           type="button"
@@ -118,6 +134,7 @@ export function SignInForm({
           Back to home
         </button>
       </p>
+      ) : null}
     </form>
   );
 }

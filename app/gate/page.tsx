@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/Logo";
-import { SignUpForm } from "@/components/gate/SignUpForm";
+import { EmbeddedAuthPanel } from "@/components/auth/EmbeddedAuthPanel";
 import { FixedAmbientBackground } from "@/components/visual/FixedAmbientBackground";
 import { AMBIENT_IMAGES } from "@/lib/media/ambient";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
@@ -29,10 +29,11 @@ export default async function GatePage({
             <LogoMark />
           </div>
           <h1 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
-            Create account
+            Sign in or create account
           </h1>
           <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
-            We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™ pairing.
+            We&apos;ll email a magic link—tap it on this device. Returning on the same browser? Your email can be
+            prefilled; after the first sign-in, you stay logged in until you sign out.
           </p>
         </header>
 
@@ -42,7 +43,7 @@ export default async function GatePage({
             className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--hs-accent)]/45 to-transparent"
           />
           <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading form…</p>}>
-            <SignUpForm authNextPath={next} />
+            <EmbeddedAuthPanel authNextPath={next} />
           </Suspense>
         </div>
 

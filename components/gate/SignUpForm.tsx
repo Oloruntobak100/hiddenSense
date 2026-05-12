@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { resolveAgeForSignupMetadata } from "@/app/actions/age-consent";
+import { writeQuizLastAuthEmail } from "@/lib/auth/quiz-auth-cue";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 const labelCls =
@@ -38,6 +39,7 @@ export function SignUpForm({
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const maxDob = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -48,6 +50,7 @@ export function SignUpForm({
     const email = String(fd.get("email") ?? "").trim();
     const firstName = String(fd.get("firstName") ?? "").trim();
     const phone = String(fd.get("phone") ?? "").trim();
+    const dateOfBirth = String(fd.get("dateOfBirth") ?? "").trim();
 
     try {
       const alcohol_policy = await resolveAgeForSignupMetadata();
@@ -65,6 +68,7 @@ export function SignUpForm({
             last_name: "",
             phone,
             alcohol_policy,
+            ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
             // No marketing toggles in UI; keep explicit defaults for profile sync.
             email_opt_in: false,
             sms_opt_in: false,
@@ -79,6 +83,8 @@ export function SignUpForm({
         setError(msg);
         return;
       }
+
+      writeQuizLastAuthEmail(email);
 
       router.push(`/verify?email=${encodeURIComponent(email)}`);
       router.refresh();
@@ -143,6 +149,19 @@ export function SignUpForm({
           required
           className={inputCls}
           placeholder="+1 555 123 4567"
+        />
+      </div>
+
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
+        <label className={labelCls} htmlFor="dateOfBirth">
+          Date of birth <span className="font-normal normal-case text-[var(--hs-muted)]">(optional)</span>
+        </label>
+        <input
+          id="dateOfBirth"
+          name="dateOfBirth"
+          type="date"
+          className={inputCls}
+          max={maxDob}
         />
       </div>
 
