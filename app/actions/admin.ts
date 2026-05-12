@@ -38,7 +38,7 @@ function extFromMime(contentType: string) {
   return "jpg";
 }
 
-async function uploadRecommendationImage(file: File): Promise<string | null> {
+async function uploadRecommendationImage(file: File, storageSubdir: "recommendations" | "recommendations/food" = "recommendations"): Promise<string | null> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     console.error("Invalid image type:", file.type);
     return null;
@@ -50,7 +50,7 @@ async function uploadRecommendationImage(file: File): Promise<string | null> {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const filename = `${randomUUID()}.${extFromMime(file.type)}`;
-  const path = `recommendations/${filename}`;
+  const path = `${storageSubdir}/${filename}`;
   const sb = getSupabaseAdmin();
 
   const { data, error } = await sb.storage.from(COCKTAIL_IMAGE_BUCKET).upload(path, buffer, {
@@ -92,6 +92,16 @@ export async function createRecommendation(formData: FormData) {
   const imageUrl = await uploadRecommendationImage(uploaded);
   if (!imageUrl) return;
 
+  const foodNameRaw = String(formData.get("food_name") ?? "").trim();
+  const foodName = foodNameRaw.length >= 2 ? foodNameRaw : null;
+
+  const foodUpload = formData.get("food_image_file");
+  let foodImageUrl: string | null = null;
+  if (foodUpload instanceof File && foodUpload.size > 0) {
+    foodImageUrl = await uploadRecommendationImage(foodUpload, "recommendations/food");
+    if (!foodImageUrl) return;
+  }
+
   const slug = flavorSlugFromCategory(parsed.data.alcohol_category);
   const description = `${parsed.data.cocktail_name} · ${parsed.data.alcohol_category} serve for Hidden Spirits checkout.`;
 
@@ -106,7 +116,9 @@ export async function createRecommendation(formData: FormData) {
     description,
     square_checkout_url: parsed.data.square_checkout_url,
     image_url: imageUrl,
-    food_pairings: [],
+    food_pairings: foodName ? [foodName] : [],
+    food_name: foodName,
+    food_image_url: foodImageUrl,
     priority_score: 85,
     active: true,
   });

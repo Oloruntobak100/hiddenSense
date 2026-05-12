@@ -1,25 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { SignUpForm } from "@/components/gate/SignUpForm";
 
 type AuthMode = "signin" | "signup";
 
 export function AuthTabs() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const modeFromUrl = (searchParams.get("mode") ?? "").toLowerCase();
-
-  const initialMode = useMemo<AuthMode>(
-    () => (modeFromUrl === "signup" ? "signup" : "signin"),
-    [modeFromUrl],
+  const mode = useMemo<AuthMode>(
+    () => ((searchParams.get("mode") ?? "").toLowerCase() === "signup" ? "signup" : "signin"),
+    [searchParams],
   );
-  const [mode, setMode] = useState<AuthMode>(initialMode);
 
-  useEffect(() => {
-    setMode(initialMode);
-  }, [initialMode]);
+  function goMode(next: AuthMode) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "signup") {
+      params.set("mode", "signup");
+    } else {
+      params.delete("mode");
+    }
+    const q = params.toString();
+    router.replace(q ? `/login?${q}` : "/login");
+  }
 
   return (
     <section className="mx-auto w-full max-w-md overflow-hidden rounded-[1.5rem] border border-white/20 bg-[var(--hs-panel)]/95 shadow-2xl shadow-black/40 backdrop-blur-md">
@@ -27,7 +32,7 @@ export function AuthTabs() {
         <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#09080f]/8 p-1">
           <button
             type="button"
-            onClick={() => setMode("signin")}
+            onClick={() => goMode("signin")}
             className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
               mode === "signin"
                 ? "bg-white text-[var(--hs-ink)] shadow-md shadow-black/15"
@@ -39,7 +44,7 @@ export function AuthTabs() {
           </button>
           <button
             type="button"
-            onClick={() => setMode("signup")}
+            onClick={() => goMode("signup")}
             className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
               mode === "signup"
                 ? "bg-white text-[var(--hs-ink)] shadow-md shadow-black/15"
@@ -54,9 +59,13 @@ export function AuthTabs() {
 
       <div className="border-t border-black/5 p-4 sm:p-5">
         {mode === "signin" ? (
-          <SignInForm showSwitchLink={false} compact />
+          <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading…</p>}>
+            <SignInForm showSwitchLink={false} compact />
+          </Suspense>
         ) : (
-          <SignUpForm showSwitchLink={false} compact />
+          <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading…</p>}>
+            <SignUpForm showSwitchLink={false} compact />
+          </Suspense>
         )}
       </div>
     </section>

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
+import { getBrowserAuthBaseUrl } from "@/lib/env";
+import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 const labelCls =
@@ -16,14 +17,24 @@ type SignUpFormProps = {
   showSwitchLink?: boolean;
   switchHref?: string;
   compact?: boolean;
+  /** Post-confirmation redirect (allowlisted). Defaults from `?next=` or `/intro`. */
+  authNextPath?: string;
 };
 
 export function SignUpForm({
   showSwitchLink = true,
   switchHref = "/login",
   compact = false,
+  authNextPath: authNextPathProp,
 }: SignUpFormProps = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextFromUrl = searchParams.get("next");
+  const authNextPath = getSafeInternalNext(
+    authNextPathProp ?? nextFromUrl ?? null,
+    "/intro",
+  );
+
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -34,23 +45,23 @@ export function SignUpForm({
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
-    const password = String(fd.get("password") ?? "");
     const firstName = String(fd.get("firstName") ?? "").trim();
+    const lastName = String(fd.get("lastName") ?? "").trim();
     const phone = String(fd.get("phone") ?? "").trim();
 
     try {
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters.");
-        return;
-      }
-
       const supabase = createBrowserSupabaseClient();
-      const { data, error: signErr } = await supabase.auth.signUp({
+      const base = getBrowserAuthBaseUrl();
+      const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(authNextPath)}`;
+
+      const { error: signErr } = await supabase.auth.signInWithOtp({
         email,
-        password,
         options: {
+          shouldCreateUser: true,
+          emailRedirectTo: redirectTo,
           data: {
             first_name: firstName,
+            last_name: lastName,
             phone,
             email_opt_in: fd.has("emailOptIn"),
             sms_opt_in: fd.has("smsOptIn"),
@@ -59,25 +70,15 @@ export function SignUpForm({
       });
 
       if (signErr) {
-        const msg = signErr.message.toLowerCase().includes("registered")
-          ? "This email may already have an account. Try signing in instead."
+        const msg = signErr.message.toLowerCase().includes("rate")
+          ? "Too many attempts. Wait a moment and try again."
           : signErr.message;
         setError(msg);
         return;
       }
 
-      if (data.session?.access_token) {
-        const synced = await syncProfileWithAccessToken(data.session.access_token);
-        if (!synced.ok) {
-          setError(synced.error);
-          return;
-        }
-        router.replace("/intro");
-        router.refresh();
-        return;
-      }
-
       router.push(`/verify?email=${encodeURIComponent(email)}`);
+      router.refresh();
     } catch {
       setError("Something went wrong. Try again.");
     } finally {
@@ -113,6 +114,20 @@ export function SignUpForm({
       </div>
 
       <div className={compact ? "space-y-1" : "space-y-1.5"}>
+        <label className={labelCls} htmlFor="lastName">
+          Last name
+        </label>
+        <input
+          id="lastName"
+          name="lastName"
+          autoComplete="family-name"
+          required
+          className={inputCls}
+          placeholder="Rivera"
+        />
+      </div>
+
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="email">
           Email
         </label>
@@ -124,22 +139,6 @@ export function SignUpForm({
           required
           className={inputCls}
           placeholder="you@example.com"
-        />
-      </div>
-
-      <div className={compact ? "space-y-1" : "space-y-1.5"}>
-        <label className={labelCls} htmlFor="password">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          minLength={6}
-          className={inputCls}
-          placeholder="At least 6 characters"
         />
       </div>
 
@@ -158,6 +157,17 @@ export function SignUpForm({
         />
       </div>
 
+      <div className={`flex flex-col gap-2 ${compact ? "text-xs" : "text-sm"}`}>
+        <label className="flex cursor-pointer items-start gap-2 text-[var(--hs-ink)]">
+          <input type="checkbox" name="emailOptIn" defaultChecked className="mt-0.5 accent-[var(--hs-accent)]" />
+          <span>Email me product updates and pairing inspiration.</span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 text-[var(--hs-ink)]">
+          <input type="checkbox" name="smsOptIn" className="mt-0.5 accent-[var(--hs-accent)]" />
+          <span>Text me occasionally about launches and events.</span>
+        </label>
+      </div>
+
       <PrimaryButton
         type="submit"
         disabled={pending}
@@ -165,7 +175,7 @@ export function SignUpForm({
           compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
         }`}
       >
-        {pending ? "Please wait…" : "Create Account"}
+        {pending ? "Please wait…" : "Email me the link"}
       </PrimaryButton>
 
       {showSwitchLink ? (

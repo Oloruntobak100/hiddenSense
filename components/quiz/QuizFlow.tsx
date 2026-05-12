@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { submitQuiz } from "@/app/actions/quiz";
 import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
 import { deriveTasteLane, type TasteAnswers, type TasteOption } from "@/lib/intelligence/taste-lane";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { SignUpForm } from "@/components/gate/SignUpForm";
+import { PENDING_QUIZ_STORAGE_KEY, type PendingQuizV1 } from "@/lib/quiz/pending-quiz";
 
 type SectionId = "energy" | "social" | "flavor" | "taste";
 type ScaleValue = -2 | -1 | 0 | 1 | 2;
@@ -105,26 +109,8 @@ const SECTIONS: Record<SectionId, { title: string; subtitle: string }> = {
 
 const SCALE: ScaleValue[] = [-2, -1, 0, 1, 2];
 
-const CARD_STEPS = [
-  {
-    step: "Step 1",
-    title: "Read Your Energy",
-    body: "Answer a few fast prompts designed to understand your current emotional rhythm.",
-  },
-  {
-    step: "Step 2",
-    title: "Reveal Your Pairing",
-    body: "HiddenSense™ matches your mood to a curated cocktail and food experience.",
-  },
-  {
-    step: "Step 3",
-    title: "Set the Tone",
-    body: "Order your recommendation, explore your vibe, and help HiddenSense™ learn your preferences.",
-  },
-] as const;
-
 export function QuizFlow() {
-  const [stage, setStage] = useState<"overview" | "questions" | "ready">("overview");
+  const [stage, setStage] = useState<"questions" | "ready">("questions");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, ScaleValue>>({});
   const [tasteAnswers, setTasteAnswers] = useState<TasteAnswers>({});
@@ -134,6 +120,8 @@ export function QuizFlow() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [startedAt] = useState(() => Date.now());
+  const [signedIn, setSignedIn] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current = ALL_QUESTIONS[index];
@@ -207,12 +195,57 @@ export function QuizFlow() {
   };
 
   useEffect(() => {
+    const sb = createBrowserSupabaseClient();
+    void sb.auth.getSession().then(({ data }) => {
+      setSignedIn(Boolean(data.session?.user));
+    });
+    const { data: sub } = sb.auth.onAuthStateChange((_evt, session) => {
+      setSignedIn(Boolean(session?.user));
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (feedbackTimerRef.current) {
         clearTimeout(feedbackTimerRef.current);
       }
     };
   }, []);
+
+  const handleViewResults = () => {
+    setError(null);
+    const payload = buildQuizPayload(answers);
+    if (!payload) {
+      setError("Complete each mood prompt to continue.");
+      return;
+    }
+    if (!hasAllTasteAnswers(tasteAnswers)) {
+      setError("Complete each taste prompt to continue.");
+      return;
+    }
+    if (signedIn) {
+      submitMoodCalibration(answers, tasteAnswers);
+      return;
+    }
+    const tasteLane = deriveTasteLane(tasteAnswers);
+    // eslint-disable-next-line react-hooks/purity -- click handler; wall-clock duration
+    const sessionDurationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+    const pending: PendingQuizV1 = {
+      v: 1,
+      legacyAnswers: payload,
+      calibrationAnswers: answers,
+      tasteLane,
+      sessionDurationSeconds,
+    };
+    try {
+      localStorage.setItem(PENDING_QUIZ_STORAGE_KEY, JSON.stringify(pending));
+    } catch {
+      setError("Could not save your answers in this browser. Allow storage or try another browser.");
+      return;
+    }
+    setSignupOpen(true);
+  };
 
   const submitMoodCalibration = (sourceAnswers: Record<string, ScaleValue>, sourceTasteAnswers: TasteAnswers) => {
     const payload = buildQuizPayload(sourceAnswers);
@@ -248,59 +281,18 @@ export function QuizFlow() {
   return (
     <div className="relative z-10 min-h-[100dvh] pb-[max(1.5rem,env(safe-area-inset-bottom))] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(1.75rem,calc(env(safe-area-inset-top)+0.5rem))] sm:pb-8 sm:pl-8 sm:pr-8 sm:pt-8">
       <div className="absolute left-[max(1.25rem,env(safe-area-inset-left))] top-[max(1.25rem,env(safe-area-inset-top)+0.25rem)] z-20 sm:left-8 sm:top-8">
-        <a
-          href="/intro"
+        <Link
+          href="/"
           className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center gap-2 rounded-full border border-white/18 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/85 backdrop-blur-sm transition active:bg-white/[0.14] hover:bg-white/[0.1] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"
         >
           <span aria-hidden className="text-base leading-none">
             ←
           </span>
           Back
-        </a>
+        </Link>
       </div>
       <AnimatePresence mode="wait">
-        {stage === "overview" ? (
-          <motion.section
-            key="overview"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-            className="mx-auto flex min-h-[min(100dvh,920px)] w-full max-w-5xl flex-col justify-center pb-8 pt-14 sm:min-h-[100dvh] sm:pb-10 sm:pt-16"
-          >
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="font-[family-name:var(--font-serif)] text-[clamp(1.7rem,6vw,3rem)] font-semibold tracking-tight text-white">
-                Read your energy before the night begins.
-              </p>
-            </div>
-
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {CARD_STEPS.map((card, i) => (
-                <motion.article
-                  key={card.step}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.08 * i }}
-                  className="rounded-2xl border border-white/15 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--hs-accent)]">{card.step}</p>
-                  <h3 className="mt-3 font-[family-name:var(--font-serif)] text-xl font-semibold text-white">{card.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/70">{card.body}</p>
-                </motion.article>
-              ))}
-            </div>
-
-            <div className="mt-9 flex justify-center sm:mt-11">
-              <button
-                type="button"
-                onClick={() => setStage("questions")}
-                className="w-full max-w-sm rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 sm:w-auto sm:max-w-none sm:px-10"
-              >
-                Start Mood Calibration
-              </button>
-            </div>
-          </motion.section>
-        ) : stage === "questions" ? (
+        {stage === "questions" ? (
           <motion.section
             key="questions"
             initial={{ opacity: 0, y: 16 }}
@@ -452,17 +444,51 @@ export function QuizFlow() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => submitMoodCalibration(answers, tasteAnswers)}
+                  onClick={handleViewResults}
                   disabled={pending}
                   className="min-h-12 rounded-xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-6 py-3 text-[15px] font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:py-2.5 sm:text-sm"
                 >
-                  {pending ? "Revealing your mood..." : "Proceed to See Mood"}
+                  {pending ? "Revealing your mood..." : "View results"}
                 </button>
               </div>
             </div>
           </motion.section>
         )}
       </AnimatePresence>
+
+      {signupOpen ? (
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center bg-black/75 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quiz-signup-title"
+        >
+          <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/15 bg-[#12101c] p-6 text-left shadow-2xl sm:rounded-3xl sm:p-8">
+            <div className="flex items-start justify-between gap-3">
+              <h2 id="quiz-signup-title" className="font-[family-name:var(--font-serif)] text-xl font-semibold text-white">
+                Save your pairing
+              </h2>
+              <button
+                type="button"
+                onClick={() => setSignupOpen(false)}
+                className="shrink-0 rounded-lg px-2 py-1 text-sm text-white/60 hover:bg-white/10 hover:text-white"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-white/65">
+              Create your free account—we&apos;ll email you a confirmation link. After you tap it, we&apos;ll reveal your mood
+              and pairing on this device.
+            </p>
+            <div className="mt-6 rounded-2xl border border-white/10 bg-[var(--hs-panel)] p-4 sm:p-5">
+              <Suspense fallback={<p className="text-sm text-[var(--hs-muted)]">Loading…</p>}>
+                <SignUpForm showSwitchLink={false} compact authNextPath="/quiz/complete" />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

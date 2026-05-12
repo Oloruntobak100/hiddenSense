@@ -47,12 +47,13 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const isPublicQuiz = pathname === "/quiz" || pathname.startsWith("/quiz/");
   const needsAuth =
-    pathname === "/quiz" ||
-    pathname === "/intro" ||
-    pathname === "/profile" ||
-    pathname.startsWith("/result/") ||
-    pathname.startsWith("/feedback/");
+    !isPublicQuiz &&
+    (pathname === "/intro" ||
+      pathname === "/profile" ||
+      pathname.startsWith("/result/") ||
+      pathname.startsWith("/feedback/"));
 
   if (
     needsAuth &&
@@ -74,5 +75,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/quiz", "/intro", "/profile", "/result/:path*", "/feedback/:path*", "/admin/:path*"],
+  matcher: [
+    "/quiz",
+    "/quiz/:path*",
+    "/intro",
+    "/profile",
+    "/result/:path*",
+    "/feedback/:path*",
+    "/admin/:path*",
+  ],
 };

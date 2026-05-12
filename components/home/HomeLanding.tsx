@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
+import { AgeConsentGate } from "@/components/home/AgeConsentGate";
 
 type Props = {
   showTesterLogin: boolean;
@@ -8,7 +11,8 @@ type Props = {
 
 export function HomeLanding({ showTesterLogin }: Props) {
   return (
-    <>
+    <AgeConsentGate>
+      {(openAgeGate) => (
       <div className="relative z-10">
         <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#09080f]/72 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
           <nav className="mx-auto max-w-6xl px-[max(1.25rem,env(safe-area-inset-left))] py-3 pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-6 sm:py-4">
@@ -36,12 +40,13 @@ export function HomeLanding({ showTesterLogin }: Props) {
                 </a>
               </div>
 
-              <Link
-                href="/login"
+              <button
+                type="button"
+                onClick={() => openAgeGate("quiz")}
                 className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-[var(--hs-accent)] px-4 py-2.5 text-[12px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_0_22px_-4px_rgba(37,99,235,0.55)] transition hover:brightness-110 sm:px-5 sm:text-[13px]"
               >
                 Get started
-              </Link>
+              </button>
             </div>
             <div className="hs-hide-scrollbar mt-2 flex justify-center gap-10 overflow-x-auto py-2.5 pb-3 md:hidden">
               <a
@@ -91,8 +96,9 @@ export function HomeLanding({ showTesterLogin }: Props) {
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row sm:gap-4">
-              <Link
-                href="/login"
+              <button
+                type="button"
+                onClick={() => openAgeGate("quiz")}
                 className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl bg-[var(--hs-accent)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_16px_40px_-12px_rgba(37,99,235,0.65)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:w-auto"
               >
                 <span aria-hidden className="text-base leading-none">
@@ -102,7 +108,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
                 <span aria-hidden className="text-base">
                   →
                 </span>
-              </Link>
+              </button>
               <a
                 href="#how-it-works"
                 className="inline-flex w-full max-w-[13rem] items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-black/25 px-6 py-3 text-[14px] font-semibold text-white/95 backdrop-blur-sm transition hover:border-white/45 hover:bg-black/35 sm:w-auto"
@@ -204,12 +210,13 @@ export function HomeLanding({ showTesterLogin }: Props) {
                 ))}
               </ol>
               <div className="mt-12 flex justify-center">
-                <Link
-                  href="/login"
+                <button
+                  type="button"
+                  onClick={() => openAgeGate("quiz")}
                   className="rounded-xl bg-[var(--hs-accent)] px-10 py-3.5 text-[15px] font-semibold text-white shadow-[0_14px_36px_-14px_rgba(37,99,235,0.6)] transition hover:brightness-110"
                 >
                   Get started
-                </Link>
+                </button>
               </div>
             </div>
           </section>
@@ -217,12 +224,20 @@ export function HomeLanding({ showTesterLogin }: Props) {
           <footer className="border-t border-white/[0.08] bg-[#09080f]/80 py-12 backdrop-blur-md">
             <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-6">
               <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
-                <Link href="/login" className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline">
+                <button
+                  type="button"
+                  onClick={() => openAgeGate("quiz")}
+                  className="font-medium text-white/85 underline-offset-4 hover:text-white hover:underline"
+                >
                   Get started
-                </Link>
-                <Link href="/login" className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAgeGate("login")}
+                  className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline"
+                >
                   Sign in
-                </Link>
+                </button>
                 <Link href="/" className="text-white/55 underline-offset-4 hover:text-white/90 hover:underline">
                   Home
                 </Link>
@@ -239,6 +254,7 @@ export function HomeLanding({ showTesterLogin }: Props) {
           </footer>
         </main>
       </div>
-    </>
+      )}
+    </AgeConsentGate>
   );
 }

@@ -9,6 +9,8 @@ type Props = {
   /** Primary: Square checkout link from listing */
   squareCheckoutUrl?: string | null;
   checkoutUrl?: string | null;
+  /** Under-21 profile: hide alcohol checkout */
+  isMinor?: boolean;
 };
 
 export function PurchaseCta({
@@ -16,6 +18,7 @@ export function PurchaseCta({
   recommendationId,
   squareCheckoutUrl,
   checkoutUrl,
+  isMinor = false,
 }: Props) {
   const [pending, startTransition] = useTransition();
   const url = squareCheckoutUrl ?? checkoutUrl ?? null;
@@ -30,6 +33,14 @@ export function PurchaseCta({
       void logRecommendationClick(moodResultId, recommendationId);
     });
   };
+
+  if (isMinor) {
+    return (
+      <p className="max-w-xl rounded-2xl border border-white/12 bg-white/[0.04] px-5 py-4 text-sm leading-relaxed text-white/70">
+        Alcohol checkout isn&apos;t shown for under-21 visits—enjoy the food inspiration and zero-proof framing tonight.
+      </p>
+    );
+  }
 
   if (hasUrl && url) {
     return (

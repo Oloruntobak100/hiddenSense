@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LogoMark } from "@/components/brand/Logo";
-import { VerifyCodeForm } from "@/components/auth/VerifyCodeForm";
 import { FixedAmbientBackground } from "@/components/visual/FixedAmbientBackground";
 import { AMBIENT_IMAGES } from "@/lib/media/ambient";
 
@@ -31,17 +30,25 @@ export default async function VerifyPage({
           <LogoMark />
         </div>
         <h1 className="text-center font-[family-name:var(--font-serif)] text-3xl font-semibold tracking-tight text-[var(--hs-accent-strong)] sm:text-4xl">
-          Enter verification code
+          Check your email
         </h1>
         <p className="mt-3 text-center text-sm text-[var(--hs-muted)]">
-          We sent a code to <span className="font-medium text-[var(--hs-ink)]">{email}</span>. Paste it below—spaces are fine.
+          We sent a confirmation link to <span className="font-medium text-[var(--hs-ink)]">{email}</span>. Open it on this
+          device to finish signing in—there is nothing to paste here.
         </p>
 
         <div className="mx-auto mt-10 w-full max-w-md rounded-[2rem] bg-[var(--hs-panel)] p-8 shadow-2xl shadow-black/35">
-          <VerifyCodeForm email={email} />
+          <p className="text-sm leading-relaxed text-[var(--hs-ink)]">
+            If you don&apos;t see the message within a few minutes, check spam or promotions. You can close this tab after
+            you&apos;ve tapped the link.
+          </p>
         </div>
 
         <p className="mt-10 text-center text-sm text-[var(--hs-muted)]">
+          <Link href="/login" className="underline-offset-4 hover:underline">
+            Back to sign in
+          </Link>
+          <span className="mx-2 text-white/30">·</span>
           <Link href="/" className="underline-offset-4 hover:text-white hover:underline">
             Home
           </Link>

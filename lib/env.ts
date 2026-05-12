@@ -33,3 +33,11 @@ export function getPublicSiteUrl(): string {
   if (v && v.length > 0) return v;
   return "http://localhost:3000";
 }
+
+/** Origin for auth email links (falls back to current window in the browser). */
+export function getBrowserAuthBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    return window.location.origin.replace(/\/$/, "");
+  }
+  return getPublicSiteUrl().replace(/\/$/, "");
+}

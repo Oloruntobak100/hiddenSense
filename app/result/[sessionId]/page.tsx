@@ -9,7 +9,6 @@ import { getRecommendation } from "@/lib/catalog/recommendations";
 import { getCurrentProfileId } from "@/lib/auth/current-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { PurchaseCta } from "@/components/result/PurchaseCta";
-import { ResultFeedbackChips } from "@/components/result/ResultFeedbackChips";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +21,12 @@ type MoodResultView = {
     cocktailName?: string;
     flavorNotes?: string;
     foodPairings?: string[];
+    foodName?: string | null;
+    foodImageUrl?: string | null;
     description?: string;
     alcoholCategory?: string;
     imageUrl?: string | null;
     squareCheckoutUrl?: string | null;
-    /** Legacy / DB-shaped snapshots only */
     square_checkout_url?: string | null;
     tasteLane?: "lemon" | "strawberry" | "apple";
     secondary?: Array<{ cocktailName: string; flavorNotes: string }>;
@@ -73,6 +73,11 @@ function tasteLaneLabel(lane: "lemon" | "strawberry" | "apple") {
   return lane.charAt(0).toUpperCase() + lane.slice(1);
 }
 
+function parseIsMinor(attributeProfile: unknown): boolean {
+  if (!attributeProfile || typeof attributeProfile !== "object" || Array.isArray(attributeProfile)) return false;
+  return (attributeProfile as Record<string, unknown>).alcohol_policy === "minor";
+}
+
 export default async function ResultPage({
   params,
   searchParams,
@@ -93,6 +98,7 @@ export default async function ResultPage({
   };
 
   let row: RowLite;
+  let isMinor = false;
 
   if (sessionId === DEMO_SESSION_ID) {
     const demo = await getDemoResultPayload();
@@ -109,6 +115,7 @@ export default async function ResultPage({
     if (!dbRow) {
       notFound();
     }
+    isMinor = parseIsMinor(dbRow.attribute_profile);
     row = {
       id: dbRow.id,
       mood_key: dbRow.mood_key,
@@ -136,18 +143,23 @@ export default async function ResultPage({
     squareCheckoutUrl = await resolveSquareCheckoutUrl(sb, moodResult);
   }
 
-  const resolvedCocktailName = moodResult?.recommendation_payload?.cocktailName ?? recommendation.cocktailName;
-  const payloadPairings = moodResult?.recommendation_payload?.foodPairings;
+  const p = moodResult?.recommendation_payload;
+  const resolvedCocktailName = p?.cocktailName ?? recommendation.cocktailName;
+  const payloadPairings = p?.foodPairings;
   const resolvedFoodPairings =
-    Array.isArray(payloadPairings) && payloadPairings.some((p) => typeof p === "string" && p.trim())
-      ? payloadPairings.filter((p): p is string => typeof p === "string" && Boolean(p.trim()))
+    Array.isArray(payloadPairings) && payloadPairings.some((x) => typeof x === "string" && x.trim())
+      ? payloadPairings.filter((x): x is string => typeof x === "string" && Boolean(x.trim()))
       : [recommendation.foodName];
-  const resolvedImage = moodResult?.recommendation_payload?.imageUrl ?? recommendation.cocktailImage;
-  const resolvedFlavor = moodResult?.recommendation_payload?.flavorNotes ?? "Balanced emotional flavor profile";
-  const resolvedDescription = moodResult?.recommendation_payload?.description ?? recommendation.pairingLine;
-  const resolvedTasteLane = moodResult?.recommendation_payload?.tasteLane ?? null;
+  const resolvedDrinkImage = p?.imageUrl ?? recommendation.cocktailImage;
+  const resolvedFoodTitle =
+    (typeof p?.foodName === "string" && p.foodName.trim()) ? p.foodName.trim() : resolvedFoodPairings[0] ?? recommendation.foodName;
+  const resolvedFoodImage =
+    (typeof p?.foodImageUrl === "string" && p.foodImageUrl.trim()) ? p.foodImageUrl.trim() : recommendation.foodImage;
+  const resolvedFlavor = p?.flavorNotes ?? "Balanced emotional flavor profile";
+  const resolvedDescription = p?.description ?? recommendation.pairingLine;
+  const resolvedTasteLane = p?.tasteLane ?? null;
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
-  const secondary = (moodResult?.recommendation_payload?.secondary ?? []).slice(0, 3);
+  const secondary = (p?.secondary ?? []).slice(0, 3);
 
   return (
     <main className="mx-auto min-h-[100dvh] max-w-6xl pb-[max(7rem,env(safe-area-inset-bottom)+4rem)] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2.5rem,env(safe-area-inset-top)+1.5rem)] sm:pb-28 sm:pl-8 sm:pr-8 sm:pt-14 lg:max-w-[72rem]">
@@ -159,7 +171,6 @@ export default async function ResultPage({
       </Link>
 
       <article className="overflow-hidden rounded-2xl border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] shadow-2xl shadow-black/60 sm:rounded-[2rem]">
-        {/* 1 — Mood read (story first) */}
         <div className="border-b border-white/[0.08] px-5 py-8 sm:px-10 sm:py-12">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--hs-accent)]">Mood reveal</p>
           <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-serif)] text-[clamp(1.55rem,5.2vw,3rem)] font-semibold leading-[1.14] tracking-tight text-white sm:leading-[1.12]">
@@ -188,79 +199,104 @@ export default async function ResultPage({
           </div>
         </div>
 
-        {/* 2 — Pairing (hero + details, logical read order) */}
         <div className="px-5 py-8 sm:px-10 sm:py-12">
-          <header className="mb-6 max-w-2xl sm:mb-8">
+          <header className="mb-8 max-w-2xl">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/50">Tonight&apos;s pairing</p>
             <p className="mt-2 text-sm text-white/60">
-              A single serve chosen for your mood profile{resolvedTasteLane ? " and taste lane" : ""}.
+              {isMinor
+                ? "Food-forward inspiration with alcohol-free serves matched to your mood."
+                : `Curated drink and plate for your mood profile${resolvedTasteLane ? " and taste lane" : ""}.`}
             </p>
           </header>
 
-          <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-14">
-            {/* DOM: story first on mobile; on lg image is column 1, copy column 2 */}
-            <div className="flex flex-col gap-5 sm:gap-6 lg:col-start-2 lg:row-start-1">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-accent)]/90">Signature serve</p>
-                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-[clamp(1.45rem,4.2vw,2.35rem)] font-semibold leading-tight text-white">
-                  {resolvedCocktailName}
-                </h2>
-                <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-white/72">{resolvedDescription}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-xl border border-white/14 bg-white/[0.05] px-3.5 py-2 text-xs text-white/78">
-                  <span className="font-medium text-white/90">Flavor notes · </span>
-                  {resolvedFlavor}
-                </span>
-                {resolvedTasteLane ? (
-                  <span className="rounded-xl border border-white/14 bg-white/[0.05] px-3.5 py-2 text-xs text-white/78">
-                    <span className="font-medium text-white/90">Taste lane · </span>
-                    {tasteLaneLabel(resolvedTasteLane)}
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="rounded-2xl border border-white/12 bg-white/[0.03] p-5 sm:p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Best enjoyed with</p>
-                <ul className="mt-3 space-y-2 text-[15px] text-white/88">
-                  {resolvedFoodPairings.map((food) => (
-                    <li key={food} className="flex gap-2">
-                      <span className="text-[var(--hs-accent)]" aria-hidden>
-                        ·
-                      </span>
-                      <span>{food}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="pt-2 sm:pt-1">
-                <PurchaseCta
-                  moodResultId={moodResult?.id}
-                  recommendationId={moodResult?.recommendation_id ?? null}
-                  squareCheckoutUrl={squareCheckoutUrl}
-                />
-              </div>
-            </div>
-
-            <figure className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-3xl lg:col-start-1 lg:row-start-1">
-              <div className="relative aspect-[16/10] w-full sm:aspect-[16/11]">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
+            <section className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-3xl">
+              <div className="relative aspect-[16/10] w-full">
                 <Image
-                  src={resolvedImage}
+                  src={resolvedDrinkImage}
                   alt={resolvedCocktailName}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover"
                   priority
                 />
               </div>
-              <figcaption className="sr-only">Visual for {resolvedCocktailName}</figcaption>
-            </figure>
+              <div className="space-y-4 p-5 sm:p-6">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-accent)]/90">
+                    {isMinor ? "Zero-proof serve" : "Signature serve"}
+                  </p>
+                  <h2 className="mt-2 font-[family-name:var(--font-serif)] text-xl font-semibold leading-snug text-white sm:text-2xl">
+                    {resolvedCocktailName}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-white/72">{resolvedDescription}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-xl border border-white/14 bg-white/[0.05] px-3.5 py-2 text-xs text-white/78">
+                    <span className="font-medium text-white/90">Flavor notes · </span>
+                    {resolvedFlavor}
+                  </span>
+                  {resolvedTasteLane ? (
+                    <span className="rounded-xl border border-white/14 bg-white/[0.05] px-3.5 py-2 text-xs text-white/78">
+                      <span className="font-medium text-white/90">Taste lane · </span>
+                      {tasteLaneLabel(resolvedTasteLane)}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-3xl">
+              <div className="relative aspect-[16/10] w-full">
+                <Image
+                  src={resolvedFoodImage}
+                  alt={resolvedFoodTitle}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-5 sm:p-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Food pairing</p>
+                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-xl font-semibold text-white sm:text-2xl">
+                  {resolvedFoodTitle}
+                </h2>
+                {resolvedFoodPairings.length > 1 ? (
+                  <ul className="mt-4 space-y-2 text-sm text-white/80">
+                    {resolvedFoodPairings.map((food) => (
+                      <li key={food} className="flex gap-2">
+                        <span className="text-[var(--hs-accent)]" aria-hidden>
+                          ·
+                        </span>
+                        <span>{food}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-3 text-sm text-white/70">Crafted to complement your mood and the serve above.</p>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+            <PurchaseCta
+              moodResultId={moodResult?.id}
+              recommendationId={moodResult?.recommendation_id ?? null}
+              squareCheckoutUrl={squareCheckoutUrl}
+              isMinor={isMinor}
+            />
+            {moodResult?.id ? (
+              <Link
+                href={`/feedback/${sessionId}/mood?moodResultId=${encodeURIComponent(moodResult.id)}`}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/22 bg-white/[0.06] px-6 py-3 text-center text-sm font-semibold text-white/90 transition hover:border-white/35 hover:bg-white/[0.1] sm:min-w-[220px]"
+              >
+                Rate how we read your mood
+              </Link>
+            ) : null}
           </div>
         </div>
 
-        {/* 3 — Alternates + feedback + meta */}
         <footer className="border-t border-white/[0.08] px-5 py-7 sm:px-10 sm:py-10">
           {secondary.length > 0 ? (
             <div className="mb-10">
@@ -276,12 +312,6 @@ export default async function ResultPage({
                   </div>
                 ))}
               </div>
-            </div>
-          ) : null}
-
-          {moodResult?.id ? (
-            <div className="mb-8 max-w-2xl">
-              <ResultFeedbackChips moodResultId={moodResult.id} />
             </div>
           ) : null}
 

@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { syncProfileWithAccessToken } from "@/lib/profile/sync-profile-client";
+import { getBrowserAuthBaseUrl } from "@/lib/env";
+import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 type SignInFormProps = {
@@ -20,7 +21,7 @@ export function SignInForm({
 }: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") ?? "/intro";
+  const nextPath = getSafeInternalNext(searchParams.get("next"), "/intro");
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -32,13 +33,18 @@ export function SignInForm({
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
-    const password = String(fd.get("password") ?? "");
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const { error: signErr } = await supabase.auth.signInWithPassword({
+      const base = getBrowserAuthBaseUrl();
+      const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+
+      const { error: signErr } = await supabase.auth.signInWithOtp({
         email,
-        password,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: redirectTo,
+        },
       });
 
       if (signErr) {
@@ -46,37 +52,21 @@ export function SignInForm({
         return;
       }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) {
-        setError("Could not establish session. Try again.");
-        return;
-      }
-
-      const synced = await syncProfileWithAccessToken(accessToken);
-      if (!synced.ok) {
-        setError(synced.error);
-        return;
-      }
-
-      const safeNext = nextPath.startsWith("/") ? nextPath : "/intro";
-      router.replace(safeNext);
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
       router.refresh();
     } catch {
-      setError("Sign-in failed. Try again.");
+      setError("Something went wrong. Try again.");
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className={`flex w-full flex-col ${compact ? "gap-3" : "gap-5"}`}>
+    <form onSubmit={onSubmit} className={`relative flex w-full flex-col ${compact ? "gap-3" : "gap-4"}`}>
       {error ? (
         <p
-          className={`border border-red-500/30 bg-red-500/10 text-red-800 ${
-            compact ? "rounded-xl px-3 py-2 text-xs" : "rounded-2xl px-4 py-3 text-sm"
+          className={`border border-red-500/35 bg-red-500/[0.09] text-red-900 ${
+            compact ? "rounded-lg px-3 py-2 text-xs" : "rounded-xl px-3.5 py-2.5 text-sm"
           }`}
           role="alert"
         >
@@ -84,57 +74,49 @@ export function SignInForm({
         </p>
       ) : null}
 
-      <div className={compact ? "space-y-1.5" : "space-y-2"}>
-        <label className={`${compact ? "text-xs" : "text-sm"} font-medium text-[var(--hs-muted)]`} htmlFor="signin-email">
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
+        <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-muted)]" htmlFor="email">
           Email
         </label>
         <input
-          id="signin-email"
+          id="email"
           name="email"
           type="email"
           autoComplete="email"
           required
-          className={`w-full border border-black/10 bg-white text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)] ${
-            compact ? "rounded-xl px-3 py-2.5 text-sm" : "rounded-2xl px-4 py-3"
-          }`}
-        />
-      </div>
-
-      <div className={compact ? "space-y-1.5" : "space-y-2"}>
-        <label className={`${compact ? "text-xs" : "text-sm"} font-medium text-[var(--hs-muted)]`} htmlFor="signin-password">
-          Password
-        </label>
-        <input
-          id="signin-password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className={`w-full border border-black/10 bg-white text-[var(--hs-ink)] shadow-inner outline-none focus:border-[var(--hs-accent)] ${
-            compact ? "rounded-xl px-3 py-2.5 text-sm" : "rounded-2xl px-4 py-3"
-          }`}
+          className="w-full rounded-xl border border-black/[0.09] bg-white px-3.5 py-2.5 text-[15px] leading-snug text-[var(--hs-ink)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] outline-none placeholder:text-black/35 focus:border-[var(--hs-accent)] focus:ring-2 focus:ring-[var(--hs-accent)]/18"
+          placeholder="you@example.com"
         />
       </div>
 
       <PrimaryButton
         type="submit"
         disabled={pending}
-        className={`w-full justify-center bg-[var(--hs-accent-strong)] ${
-          compact ? "rounded-xl py-2.5 text-sm" : "py-4 text-lg"
+        className={`w-full justify-center rounded-xl bg-[var(--hs-accent)] font-semibold shadow-[0_12px_28px_-8px_rgba(37,99,235,0.55)] ${
+          compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
         }`}
       >
-        {pending ? "Signing in…" : "Sign in"}
-        <span aria-hidden className={compact ? "text-sm" : ""}>→</span>
+        {pending ? "Sending…" : "Email me the link"}
       </PrimaryButton>
 
       {showSwitchLink ? (
-        <p className={`text-center text-[var(--hs-muted)] ${compact ? "text-xs" : "text-sm"}`}>
+        <p className="text-center text-[13px] text-[var(--hs-muted)]">
           New here?{" "}
-          <Link href={switchHref} className="font-medium text-[var(--hs-accent)] underline-offset-4 hover:underline">
+          <Link href={switchHref} className="font-semibold text-[var(--hs-accent)] underline-offset-[3px] hover:underline">
             Create an account
           </Link>
         </p>
       ) : null}
+
+      <p className="text-center text-[12px] text-[var(--hs-muted)]">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="font-medium text-[var(--hs-accent)] underline-offset-2 hover:underline"
+        >
+          Back to home
+        </button>
+      </p>
     </form>
   );
 }

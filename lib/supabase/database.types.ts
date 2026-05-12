@@ -13,6 +13,7 @@ export interface Database {
         Row: {
           id: string;
           first_name: string;
+          last_name: string;
           email: string;
           phone: string;
           email_opt_in: boolean;
@@ -23,6 +24,7 @@ export interface Database {
         Insert: {
           id?: string;
           first_name: string;
+          last_name?: string;
           email: string;
           phone: string;
           email_opt_in?: boolean;
@@ -70,6 +72,8 @@ export interface Database {
           square_checkout_url: string;
           image_url: string | null;
           food_pairings: string[];
+          food_name: string | null;
+          food_image_url: string | null;
           priority_score: number;
           active: boolean;
           created_at: string;
@@ -86,6 +90,8 @@ export interface Database {
           square_checkout_url: string;
           image_url?: string | null;
           food_pairings?: string[];
+          food_name?: string | null;
+          food_image_url?: string | null;
           priority_score?: number;
           active?: boolean;
           created_at?: string;

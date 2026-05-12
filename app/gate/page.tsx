@@ -1,12 +1,21 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/Logo";
 import { SignUpForm } from "@/components/gate/SignUpForm";
 import { FixedAmbientBackground } from "@/components/visual/FixedAmbientBackground";
 import { AMBIENT_IMAGES } from "@/lib/media/ambient";
+import { getSafeInternalNext } from "@/lib/auth/safe-next";
 
 export const dynamic = "force-dynamic";
 
-export default async function GatePage() {
+export default async function GatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const sp = await searchParams;
+  const next = getSafeInternalNext(sp.next ?? null, "/intro");
+
   return (
     <>
       <FixedAmbientBackground
@@ -26,7 +35,7 @@ export default async function GatePage() {
             Hello
           </h1>
           <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
-            Create your account—verify your email with the code we send—then start your HiddenSense™ pairing.
+            We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™ pairing.
           </p>
         </header>
 
@@ -35,7 +44,9 @@ export default async function GatePage() {
             aria-hidden
             className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--hs-accent)]/45 to-transparent"
           />
-          <SignUpForm />
+          <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading form…</p>}>
+            <SignUpForm authNextPath={next} />
+          </Suspense>
         </div>
 
         <p className="text-center text-xs text-white/65 sm:text-sm">

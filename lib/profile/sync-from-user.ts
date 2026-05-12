@@ -16,6 +16,7 @@ export async function upsertProfileFromAuthUser(user: User): Promise<SyncProfile
   const payload = {
     auth_user_id: user.id,
     first_name: String(meta.first_name ?? "Friend").trim().slice(0, 120) || "Friend",
+    last_name: String(meta.last_name ?? "").trim().slice(0, 120),
     email: user.email ?? "",
     phone: String(meta.phone ?? "").trim().slice(0, 40),
     email_opt_in: meta.email_opt_in !== false,

@@ -61,8 +61,8 @@ export default async function AdminPage() {
           <div className="h-fit rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
             <h2 className="mb-2 text-lg font-semibold">Add checkout listing</h2>
             <p className="mb-6 text-xs leading-relaxed text-white/48">
-              Drink name, spirit category, Square checkout link, and one hero image (JPEG / PNG / WebP / GIF, max 5 MB).
-              Listings apply across all moods; priority is boosted so they surface when matched.
+              Drink name, spirit category, Square checkout link, drink hero image, optional food name and food image
+              (JPEG / PNG / WebP / GIF, max 5 MB each). Listings apply across all moods; priority is boosted when matched.
             </p>
             <form action={createRecommendation} encType="multipart/form-data" className="grid gap-4">
               <label className="grid gap-1.5">
@@ -107,11 +107,30 @@ export default async function AdminPage() {
               </label>
 
               <label className="grid gap-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Image upload</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Drink image</span>
                 <input
                   type="file"
                   name="image_file"
                   required
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="text-sm text-white/80 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-white file:hover:bg-white/15"
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Food suggestion (optional)</span>
+                <input
+                  name="food_name"
+                  placeholder="Citrus tuna crudo"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2.5 text-sm outline-none placeholder:text-white/35"
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">Food image (optional)</span>
+                <input
+                  type="file"
+                  name="food_image_file"
                   accept="image/jpeg,image/png,image/webp,image/gif"
                   className="text-sm text-white/80 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-white file:hover:bg-white/15"
                 />
@@ -129,23 +148,38 @@ export default async function AdminPage() {
               {(recs ?? []).map((rec) => (
                 <div key={rec.id} className="rounded-2xl border border-white/12 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-4">
-                    {rec.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={rec.image_url}
-                        alt=""
-                        className="mt-1 h-16 w-16 shrink-0 rounded-xl border border-white/15 object-cover"
-                        width={64}
-                        height={64}
-                      />
-                    ) : (
-                      <div className="mt-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.03] text-[10px] text-white/40">
-                        No img
-                      </div>
-                    )}
+                    <div className="mt-1 flex shrink-0 gap-2">
+                      {rec.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={rec.image_url}
+                          alt=""
+                          className="h-16 w-16 rounded-xl border border-white/15 object-cover"
+                          width={64}
+                          height={64}
+                        />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.03] text-[10px] text-white/40">
+                          No drink
+                        </div>
+                      )}
+                      {rec.food_image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={rec.food_image_url}
+                          alt=""
+                          className="h-16 w-16 rounded-xl border border-white/15 object-cover"
+                          width={64}
+                          height={64}
+                        />
+                      ) : null}
+                    </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">{rec.cocktail_name}</p>
                       <p className="text-sm text-white/65">{rec.alcohol_category}</p>
+                      {rec.food_name ? (
+                        <p className="mt-1 text-xs text-white/55">Food · {rec.food_name}</p>
+                      ) : null}
                       {isUniversalMoodTags(rec.mood_tags) ? (
                         <p className="mt-1 text-xs text-white/45">Eligible for · all moods</p>
                       ) : rec.mood_tags.length > 0 ? (

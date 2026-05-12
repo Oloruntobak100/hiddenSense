@@ -29,7 +29,10 @@ cp .env.example .env.local
 
 2. Run the migration in the Supabase SQL editor:
 
-`supabase/migrations/001_init.sql`
+`supabase/migrations/001_init.sql`  
+`supabase/migrations/002_intelligence_engine.sql` (if not already)  
+`supabase/migrations/003_storage_cocktail_images.sql`  
+`supabase/migrations/004_profile_last_name_food_assets.sql`
 
 Leave RLS disabled for this prototype, or tighten policies before production (see plan for OTP/auth migration notes).
 
@@ -61,7 +64,7 @@ Premium food & drink imagery is wired as **fixed backgrounds** with **translucen
 | Key | Purpose |
 |-----|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Public** anon key — browser auth (`signUp`, `signIn`, `verifyOtp`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Public** anon key — browser auth (`signInWithOtp`, `exchangeCodeForSession`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server only** — upserts `profiles` after auth (never expose publicly) |
 | `NEXT_PUBLIC_SITE_URL` | Absolute site root for shared links |
 | `NEXT_PUBLIC_CHECKOUT_BASE_URL` | Stub storefront URL; UTMs plus `mood`, `session_id`, `profile_id` query params are appended |
@@ -72,18 +75,18 @@ If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is
 
 ## User flow (production auth)
 
-1. **`/gate`** — Sign up with first name, email, password, phone, marketing toggles. Supabase sends a **verification code** (configure Email templates in dashboard).
-2. **`/verify?email=`** — Paste the code (free-form textarea; whitespace stripped). On success, **`profiles`** upserts with `auth_user_id`.
-3. **`/quiz`** — Mood Identification (protected route).
-4. **`/result/[sessionId]`** — Pairing + checkout stub + share.
-5. **`/feedback/[sessionId]`** → **`/thanks`**.
+1. **Home** — Age consent (21+ / under 21) then **Get started** opens the public **`/quiz`**, or **Sign in** goes to **`/login`**.
+2. **`/gate`** or login **Sign up** — First name, last name, email, phone, marketing toggles. Supabase **`signInWithOtp`** sends a **confirmation link** (no in-app code). Redirect target: **`/auth/callback?next=…`** then profile sync.
+3. **`/verify?email=`** — Static “check your email” (no code field).
+4. **`/quiz`** — Anonymous mood + taste flow; **View results** prompts account creation if needed; answers are stored in **`localStorage`** until the session is saved.
+5. **`/quiz/complete`** — After the email link, submits the pending quiz and redirects to **`/result/[sessionId]`**.
+6. **`/result/[sessionId]`** — Drink + food pairing cards, checkout when configured, link to **`/feedback/[sessionId]/mood`** for mood accuracy.
+7. **`/feedback/[sessionId]/mood`** — Absolutely / Close enough / Not really, then **`/feedback/[sessionId]`** for detailed feedback → **`/thanks`**.
 
-**`/login`** — Email + password for returning users (`signInWithPassword`), then same profile upsert.
+**`/login`** — Magic link (`signInWithOtp`) for returning users, same callback + optional `?next=`.
 
-Middleware protects **`/quiz`**, **`/result/*`**, **`/feedback/*`**: requires a **Supabase session** OR (in dev / `ENABLE_QUICK_LOGIN`) the legacy tester profile cookie.
+Middleware protects **`/intro`**, **`/profile`**, **`/result/*`**, **`/feedback/*`** (including **`/feedback/*/mood`**). **`/quiz`** and **`/quiz/complete`** are public. **`/auth/callback`** is not gated by the auth redirect.
 
 ## Supabase Auth settings
 
-In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email**. Enable **Confirm signup** / email verification so users receive a code (adjust your email template to surface the OTP Supabase inserts).
-
-Site URL / redirect URLs must include your deployed origin (e.g. `https://your-app.vercel.app`).
+In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email**. Use **Confirm signup** / magic link templates (PKCE). Add redirect URLs: **`{SITE_URL}/auth/callback`** and query variants your app uses (e.g. `?next=/quiz/complete`). Site URL should match `NEXT_PUBLIC_SITE_URL`.

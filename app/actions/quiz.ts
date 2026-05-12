@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getCurrentProfileId } from "@/lib/auth/current-profile";
+import { getAgeAlcoholPolicy } from "@/lib/auth/age-consent-server";
 import {
   isDemoSession,
   setDemoResultPayload,
@@ -63,10 +64,12 @@ export async function submitQuiz(input: SubmitQuizInput): Promise<QuizActionStat
   const moodMatch = determineMoodType(scoreProfile);
   const confidencePct = calculateConfidenceScore(scoreProfile, moodMatch.primary.mood, moodMatch.secondary?.mood);
   const chosenMood = moodMatch.primary?.mood ?? MOOD_ARCHETYPES.find((m) => m.key === mood.mood_key) ?? MOOD_ARCHETYPES[0];
+  const alcoholPolicy = await getAgeAlcoholPolicy();
   const recommendation = await getRecommendationForMood({
     mood: chosenMood,
     scores: scoreProfile,
     tasteLane,
+    alcoholPolicy,
   });
   const flavorProfile = generateFlavorProfile(scoreProfile);
   const atmosphereProfile = generateAtmosphereProfile(scoreProfile);
@@ -92,6 +95,7 @@ export async function submitQuiz(input: SubmitQuizInput): Promise<QuizActionStat
         flavor_profile: flavorProfile,
         atmosphere_profile: atmosphereProfile,
         taste_lane: tasteLane,
+        alcohol_policy: alcoholPolicy,
       } as unknown as Json,
       mood_key: chosenMood.key,
       mood_name: chosenMood.name,

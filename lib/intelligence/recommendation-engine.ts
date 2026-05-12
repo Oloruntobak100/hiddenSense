@@ -5,6 +5,8 @@ import type { EmotionalScores } from "@/lib/intelligence/scoring";
 import { getRecommendation } from "@/lib/catalog/recommendations";
 import type { TasteLane } from "@/lib/intelligence/taste-lane";
 
+export type AlcoholPolicy = "adult" | "minor";
+
 export type RecommendationEngineResult = {
   source: "admin" | "internal" | "external" | "ai_fallback";
   recommendationId: string | null;
@@ -13,6 +15,9 @@ export type RecommendationEngineResult = {
   imageUrl: string | null;
   flavorNotes: string;
   foodPairings: string[];
+  /** Primary food label for dual-card result UI */
+  foodName: string | null;
+  foodImageUrl: string | null;
   description: string;
   squareCheckoutUrl: string | null;
   emotionalReasoning: string;
@@ -24,12 +29,22 @@ export async function getRecommendationForMood({
   mood,
   scores,
   tasteLane,
+  alcoholPolicy = "adult",
 }: {
   mood: MoodArchetype;
   scores: EmotionalScores;
   tasteLane: TasteLane;
+  alcoholPolicy?: AlcoholPolicy;
 }): Promise<RecommendationEngineResult> {
-  const adminFirst = await findAdminRecommendation(mood, scores, tasteLane);
+  if (alcoholPolicy === "minor") {
+    const adminNa = await findAdminRecommendation(mood, scores, tasteLane, { minorOnly: true });
+    if (adminNa) return adminNa;
+    const internalNa = minorInternalFromCatalog(mood, scores, tasteLane);
+    if (internalNa) return internalNa;
+    return minorAiFallback(mood, scores, tasteLane);
+  }
+
+  const adminFirst = await findAdminRecommendation(mood, scores, tasteLane, { minorOnly: false });
   if (adminFirst) return adminFirst;
 
   const internal = getRecommendation(mood.key);
@@ -42,6 +57,8 @@ export async function getRecommendationForMood({
       imageUrl: internal.cocktailImage,
       flavorNotes: mood.flavor_profile,
       foodPairings: [internal.foodName],
+      foodName: internal.foodName,
+      foodImageUrl: internal.foodImage,
       description: internal.pairingLine,
       squareCheckoutUrl: null,
       emotionalReasoning: buildReasoning(mood, scores, tasteLane),
@@ -63,6 +80,8 @@ export async function getRecommendationForMood({
     imageUrl: null,
     flavorNotes: mood.flavor_profile,
     foodPairings: ["Chef's seasonal small plate"],
+    foodName: "Chef's seasonal small plate",
+    foodImageUrl: null,
     description: "Custom-curated based on your emotional profile.",
     squareCheckoutUrl: null,
     emotionalReasoning: buildReasoning(mood, scores, tasteLane),
@@ -71,32 +90,52 @@ export async function getRecommendationForMood({
   };
 }
 
+type AdminPickOpts = { minorOnly?: boolean };
+
 async function findAdminRecommendation(
   mood: MoodArchetype,
   scores: EmotionalScores,
   tasteLane: TasteLane,
+  opts: AdminPickOpts = {},
 ): Promise<RecommendationEngineResult | null> {
   const sb = getSupabaseAdmin();
-  // Primary storefront: highest-priority active admin row wins for all users while catalog is gated (no mood-tag filter).
   const { data } = await sb
     .from("cocktail_recommendations")
     .select("*")
     .eq("active", true)
     .order("priority_score", { ascending: false })
-    .limit(8);
+    .limit(16);
 
   if (!data?.length) return null;
 
-  const primary = pickByTaste(data, tasteLane) ?? data[0];
-  const alternatePool = data.filter((r) => r.id !== primary.id);
+  let pool = data;
+  if (opts.minorOnly) {
+    pool = data.filter((r) => String(r.alcohol_category ?? "").trim().toLowerCase() === "non-alcoholic");
+  }
+  if (!pool.length) return null;
 
-  const catalogFood = getRecommendation(mood.key)?.foodName ?? null;
+  const primary = pickByTaste(pool, tasteLane) ?? pool[0];
+  const alternatePool = pool.filter((r) => r.id !== primary.id);
+
+  const catalog = getRecommendation(mood.key);
+  const catalogFood = catalog?.foodName ?? null;
+  const catalogFoodImg = catalog?.foodImage ?? null;
+
   const foodPairings =
     primary.food_pairings?.length && primary.food_pairings.some((s) => String(s).trim())
       ? primary.food_pairings.filter((s) => String(s).trim())
       : catalogFood
         ? [catalogFood]
         : ["Chef-selected pairing for tonight's mood"];
+
+  const foodNameRaw = typeof primary.food_name === "string" && primary.food_name.trim()
+    ? primary.food_name.trim()
+    : foodPairings[0] ?? null;
+
+  const foodImageUrl =
+    typeof primary.food_image_url === "string" && primary.food_image_url.trim()
+      ? primary.food_image_url.trim()
+      : catalogFoodImg;
 
   return {
     source: "admin",
@@ -106,6 +145,8 @@ async function findAdminRecommendation(
     imageUrl: primary.image_url,
     flavorNotes: primary.flavor_profile,
     foodPairings,
+    foodName: foodNameRaw,
+    foodImageUrl,
     description: primary.description,
     squareCheckoutUrl: primary.square_checkout_url,
     emotionalReasoning: buildReasoning(mood, scores, tasteLane),
@@ -115,6 +156,50 @@ async function findAdminRecommendation(
       flavorNotes: r.flavor_profile,
       source: "admin",
     })),
+  };
+}
+
+function minorInternalFromCatalog(
+  mood: MoodArchetype,
+  scores: EmotionalScores,
+  tasteLane: TasteLane,
+): RecommendationEngineResult | null {
+  const internal = getRecommendation(mood.key);
+  if (!internal) return null;
+  return {
+    source: "internal",
+    recommendationId: null,
+    cocktailName: `Zero-proof palette · ${mood.name}`,
+    alcoholCategory: "non-alcoholic",
+    imageUrl: internal.foodImage,
+    flavorNotes: mood.flavor_profile,
+    foodPairings: [internal.foodName],
+    foodName: internal.foodName,
+    foodImageUrl: internal.foodImage,
+    description: `${internal.pairingLine} Alcohol-free serves and food-forward calm for tonight.`,
+    squareCheckoutUrl: null,
+    emotionalReasoning: buildReasoning(mood, scores, tasteLane),
+    tasteLane,
+    secondary: [],
+  };
+}
+
+function minorAiFallback(mood: MoodArchetype, scores: EmotionalScores, tasteLane: TasteLane): RecommendationEngineResult {
+  return {
+    source: "ai_fallback",
+    recommendationId: null,
+    cocktailName: "HiddenSense NA wind-down",
+    alcoholCategory: "non-alcoholic",
+    imageUrl: null,
+    flavorNotes: mood.flavor_profile,
+    foodPairings: ["Seasonal fruit, herbs, and light bites"],
+    foodName: "Seasonal fruit, herbs, and light bites",
+    foodImageUrl: null,
+    description: "A gentle, alcohol-free pairing tuned to your mood.",
+    squareCheckoutUrl: null,
+    emotionalReasoning: buildReasoning(mood, scores, tasteLane),
+    tasteLane,
+    secondary: [],
   };
 }
 
@@ -142,6 +227,8 @@ async function fetchCocktailDbFallback(mood: MoodArchetype, tasteLane: TasteLane
       imageUrl,
       flavorNotes: mood.flavor_profile,
       foodPairings: ["Chef-selected pairing"],
+      foodName: "Chef-selected pairing",
+      foodImageUrl: null,
       description: instructions,
       squareCheckoutUrl: null,
       emotionalReasoning: buildReasoning(mood, undefined, tasteLane),
