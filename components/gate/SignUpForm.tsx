@@ -46,7 +46,6 @@ export function SignUpForm({
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
     const firstName = String(fd.get("firstName") ?? "").trim();
-    const lastName = String(fd.get("lastName") ?? "").trim();
     const phone = String(fd.get("phone") ?? "").trim();
 
     try {
@@ -61,10 +60,11 @@ export function SignUpForm({
           emailRedirectTo: redirectTo,
           data: {
             first_name: firstName,
-            last_name: lastName,
+            last_name: "",
             phone,
-            email_opt_in: fd.has("emailOptIn"),
-            sms_opt_in: fd.has("smsOptIn"),
+            // No marketing toggles in UI; keep explicit defaults for profile sync.
+            email_opt_in: false,
+            sms_opt_in: false,
           },
         },
       });
@@ -114,20 +114,6 @@ export function SignUpForm({
       </div>
 
       <div className={compact ? "space-y-1" : "space-y-1.5"}>
-        <label className={labelCls} htmlFor="lastName">
-          Last name
-        </label>
-        <input
-          id="lastName"
-          name="lastName"
-          autoComplete="family-name"
-          required
-          className={inputCls}
-          placeholder="Rivera"
-        />
-      </div>
-
-      <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="email">
           Email
         </label>
@@ -157,17 +143,6 @@ export function SignUpForm({
         />
       </div>
 
-      <div className={`flex flex-col gap-2 ${compact ? "text-xs" : "text-sm"}`}>
-        <label className="flex cursor-pointer items-start gap-2 text-[var(--hs-ink)]">
-          <input type="checkbox" name="emailOptIn" defaultChecked className="mt-0.5 accent-[var(--hs-accent)]" />
-          <span>Email me product updates and pairing inspiration.</span>
-        </label>
-        <label className="flex cursor-pointer items-start gap-2 text-[var(--hs-ink)]">
-          <input type="checkbox" name="smsOptIn" className="mt-0.5 accent-[var(--hs-accent)]" />
-          <span>Text me occasionally about launches and events.</span>
-        </label>
-      </div>
-
       <PrimaryButton
         type="submit"
         disabled={pending}
@@ -175,7 +150,7 @@ export function SignUpForm({
           compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
         }`}
       >
-        {pending ? "Please wait…" : "Email me the link"}
+        {pending ? "Please wait…" : "Create Account"}
       </PrimaryButton>
 
       {showSwitchLink ? (

@@ -7,6 +7,7 @@ import { submitQuiz } from "@/app/actions/quiz";
 import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
 import { deriveTasteLane, type TasteAnswers, type TasteOption } from "@/lib/intelligence/taste-lane";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { LogoMark } from "@/components/brand/Logo";
 import { SignUpForm } from "@/components/gate/SignUpForm";
 import { PENDING_QUIZ_STORAGE_KEY, type PendingQuizV1 } from "@/lib/quiz/pending-quiz";
 
@@ -463,28 +464,43 @@ export function QuizFlow() {
           aria-modal="true"
           aria-labelledby="quiz-signup-title"
         >
-          <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/15 bg-[#12101c] p-6 text-left shadow-2xl sm:rounded-3xl sm:p-8">
-            <div className="flex items-start justify-between gap-3">
-              <h2 id="quiz-signup-title" className="font-[family-name:var(--font-serif)] text-xl font-semibold text-white">
-                Save your pairing
-              </h2>
-              <button
-                type="button"
-                onClick={() => setSignupOpen(false)}
-                className="shrink-0 rounded-lg px-2 py-1 text-sm text-white/60 hover:bg-white/10 hover:text-white"
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="mt-2 text-sm text-white/65">
-              Create your free account—we&apos;ll email you a confirmation link. After you tap it, we&apos;ll reveal your mood
-              and pairing on this device.
-            </p>
-            <div className="mt-6 rounded-2xl border border-white/10 bg-[var(--hs-panel)] p-4 sm:p-5">
-              <Suspense fallback={<p className="text-sm text-[var(--hs-muted)]">Loading…</p>}>
-                <SignUpForm showSwitchLink={false} compact authNextPath="/quiz/complete" />
-              </Suspense>
+          <div className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto sm:max-w-lg">
+            <button
+              type="button"
+              onClick={() => setSignupOpen(false)}
+              className="absolute right-0 top-0 z-10 rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <div className="pr-10 pt-1 text-left sm:pr-12">
+              <header className="text-center">
+                <div className="mb-4 flex justify-center sm:mb-5">
+                  <LogoMark />
+                </div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                  Create account
+                </p>
+                <h2
+                  id="quiz-signup-title"
+                  className="mt-2 bg-gradient-to-br from-[var(--hs-accent-strong)] to-[var(--hs-accent)] bg-clip-text font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight text-transparent sm:text-[2.75rem]"
+                >
+                  Hello
+                </h2>
+                <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
+                  We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™ pairing.
+                </p>
+              </header>
+
+              <div className="relative mt-6 w-full overflow-hidden rounded-3xl border border-white/45 bg-white/88 p-5 shadow-[0_28px_70px_-24px_rgba(0,0,0,0.65),0_0_0_1px_rgba(37,99,235,0.08)] backdrop-blur-xl sm:mt-7 sm:p-7">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--hs-accent)]/45 to-transparent"
+                />
+                <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading form…</p>}>
+                  <SignUpForm showSwitchLink={false} compact authNextPath="/quiz/complete" />
+                </Suspense>
+              </div>
             </div>
           </div>
         </div>
