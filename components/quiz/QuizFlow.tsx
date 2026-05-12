@@ -215,10 +215,14 @@ export function QuizFlow() {
     }
 
     const sb = createBrowserSupabaseClient();
-    const {
-      data: { user },
-    } = await sb.auth.getUser();
-    if (user) {
+
+    const { data: existing } = await sb.auth.getSession();
+    if (existing.session) {
+      await sb.auth.refreshSession();
+    }
+
+    const { data: latest } = await sb.auth.getSession();
+    if (latest.session?.user) {
       submitMoodCalibration(answers, tasteAnswers);
       return;
     }

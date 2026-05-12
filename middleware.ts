@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAdminEmail } from "@/lib/auth/admin-allowlist";
 import { PROFILE_COOKIE } from "@/lib/session/constants";
 import { isUuid } from "@/lib/session/uuid";
+import { supabaseAuthCookieOptions } from "@/lib/supabase/auth-cookie-options";
 
 function allowTesterCookieBypass(request: NextRequest): boolean {
   if (
@@ -30,6 +31,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const supabase = createServerClient(url, anon, {
+    cookieOptions: supabaseAuthCookieOptions,
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -77,14 +79,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/quiz",
-    "/quiz/:path*",
-    "/intro",
-    "/dashboard",
-    "/dashboard/:path*",
-    "/profile",
-    "/result/:path*",
-    "/feedback/:path*",
-    "/admin/:path*",
+    /*
+     * Refresh auth cookies on almost every navigation (not only /quiz).
+     * Previously, sessions went stale when users stayed on routes outside
+     * the old list (e.g. home) before returning to quiz.
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

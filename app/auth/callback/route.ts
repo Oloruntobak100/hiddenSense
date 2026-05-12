@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { upsertProfileFromAuthUser } from "@/lib/profile/sync-from-user";
+import { supabaseAuthCookieOptions } from "@/lib/supabase/auth-cookie-options";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServerClient(supabaseUrl, anon, {
+    cookieOptions: supabaseAuthCookieOptions,
     cookies: {
       getAll() {
         return cookieStore.getAll();
