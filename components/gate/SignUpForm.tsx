@@ -7,6 +7,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { resolveAgeForSignupMetadata } from "@/app/actions/age-consent";
+import { checkRegisteredEmail } from "@/app/actions/auth-email-lookup";
 import { writeQuizLastAuthEmail } from "@/lib/auth/quiz-auth-cue";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
@@ -39,12 +40,14 @@ export function SignUpForm({
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [pendingPhase, setPendingPhase] = useState<"idle" | "check" | "send">("idle");
   const maxDob = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setPending(true);
+    setPendingPhase("check");
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
@@ -53,10 +56,39 @@ export function SignUpForm({
     const dateOfBirth = String(fd.get("dateOfBirth") ?? "").trim();
 
     try {
-      const alcohol_policy = await resolveAgeForSignupMetadata();
       const supabase = createBrowserSupabaseClient();
       const base = getBrowserAuthBaseUrl();
       const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(authNextPath)}`;
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        if (session.user.email.toLowerCase() === email.toLowerCase()) {
+          writeQuizLastAuthEmail(email);
+          router.push(authNextPath);
+          router.refresh();
+          return;
+        }
+        setError(
+          `You're signed in as ${session.user.email}. Sign out first if you need to use a different email.`,
+        );
+        return;
+      }
+
+      const lookup = await checkRegisteredEmail(email);
+      if (!lookup.ok) {
+        setError(lookup.error);
+        return;
+      }
+      if (lookup.registered) {
+        setError("That email already has an account. Use the Sign in tab to get your link.");
+        return;
+      }
+
+      setPendingPhase("send");
+
+      const alcohol_policy = await resolveAgeForSignupMetadata();
 
       const { error: signErr } = await supabase.auth.signInWithOtp({
         email,
@@ -92,6 +124,7 @@ export function SignUpForm({
       setError("Something went wrong. Try again.");
     } finally {
       setPending(false);
+      setPendingPhase("idle");
     }
   }
 
@@ -173,7 +206,11 @@ export function SignUpForm({
           compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
         }`}
       >
-        {pending ? "Please wait…" : "Create Account"}
+        {pending
+          ? pendingPhase === "check"
+            ? "Checking…"
+            : "Sending…"
+          : "Create Account"}
       </PrimaryButton>
 
       {showSwitchLink ? (

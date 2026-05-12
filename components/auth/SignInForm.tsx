@@ -7,6 +7,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { writeQuizLastAuthEmail } from "@/lib/auth/quiz-auth-cue";
+import { checkRegisteredEmail } from "@/app/actions/auth-email-lookup";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 type SignInFormProps = {
@@ -36,11 +37,13 @@ export function SignInForm({
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [pendingPhase, setPendingPhase] = useState<"idle" | "check" | "send">("idle");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setPending(true);
+    setPendingPhase("check");
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
@@ -49,6 +52,34 @@ export function SignInForm({
       const supabase = createBrowserSupabaseClient();
       const base = getBrowserAuthBaseUrl();
       const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        if (session.user.email.toLowerCase() === email.toLowerCase()) {
+          writeQuizLastAuthEmail(email);
+          router.push(nextPath);
+          router.refresh();
+          return;
+        }
+        setError(
+          `You're signed in as ${session.user.email}. Sign out first if you need to use a different email.`,
+        );
+        return;
+      }
+
+      const lookup = await checkRegisteredEmail(email);
+      if (!lookup.ok) {
+        setError(lookup.error);
+        return;
+      }
+      if (!lookup.registered) {
+        setError("We don't have an account for that email yet. Open the Sign up tab to create one.");
+        return;
+      }
+
+      setPendingPhase("send");
 
       const { error: signErr } = await supabase.auth.signInWithOtp({
         email,
@@ -71,6 +102,7 @@ export function SignInForm({
       setError("Something went wrong. Try again.");
     } finally {
       setPending(false);
+      setPendingPhase("idle");
     }
   }
 
@@ -112,7 +144,11 @@ export function SignInForm({
           compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
         }`}
       >
-        {pending ? "Sending…" : "Email me the link"}
+        {pending
+          ? pendingPhase === "check"
+            ? "Checking…"
+            : "Sending…"
+          : "Email me the link"}
       </PrimaryButton>
 
       {showSwitchLink ? (
