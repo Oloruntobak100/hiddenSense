@@ -478,14 +478,11 @@ export function QuizFlow() {
                 <div className="mb-4 flex justify-center sm:mb-5">
                   <LogoMark />
                 </div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
-                  Create account
-                </p>
                 <h2
                   id="quiz-signup-title"
-                  className="mt-2 bg-gradient-to-br from-[var(--hs-accent-strong)] to-[var(--hs-accent)] bg-clip-text font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight text-transparent sm:text-[2.75rem]"
+                  className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55"
                 >
-                  Hello
+                  Create account
                 </h2>
                 <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
                   We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™ pairing.
