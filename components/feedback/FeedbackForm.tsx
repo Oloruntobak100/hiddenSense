@@ -1,6 +1,6 @@
 "use client";
 
-import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { FormSubmitButton } from "@/components/ui/FormSubmitButton";
 import { submitFeedback } from "@/app/actions/feedback";
 
 export function FeedbackForm({ sessionId }: { sessionId: string }) {
@@ -54,9 +54,7 @@ export function FeedbackForm({ sessionId }: { sessionId: string }) {
         />
       </div>
 
-      <PrimaryButton type="submit" className="w-full justify-center py-4">
-        Submit feedback
-      </PrimaryButton>
+      <FormSubmitButton className="w-full justify-center py-4">Submit feedback</FormSubmitButton>
     </form>
   );
 }

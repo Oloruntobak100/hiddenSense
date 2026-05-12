@@ -24,6 +24,7 @@ export function TesterLoginForm() {
       ) : null}
       <PrimaryButton
         type="submit"
+        loading={pending}
         disabled={pending}
         className="w-full justify-center bg-[var(--hs-accent-strong)] py-4 text-lg"
       >

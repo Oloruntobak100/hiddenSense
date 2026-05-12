@@ -61,3 +61,43 @@ body {
 .hs-hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hs-btn-tap-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    65% {
+      box-shadow: 0 0 0 14px rgba(255, 255, 255, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+  }
+
+  @keyframes hs-btn-shimmer {
+    0% {
+      transform: translateX(-140%) skewX(-16deg);
+    }
+    100% {
+      transform: translateX(240%) skewX(-16deg);
+    }
+  }
+
+  .hs-btn-tap-ring {
+    animation: hs-btn-tap-ring 0.44s ease-out 1;
+  }
+
+  .hs-btn-shimmer-bar {
+    animation: hs-btn-shimmer 1.08s ease-in-out infinite;
+  }
+
+  /* Tactile feedback for non-primary native buttons (quiz, modals, etc.) */
+  button:not([disabled]):where(:not(.hs-primary-button)) {
+    transition: filter 0.18s ease-out;
+  }
+
+  button:not([disabled]):where(:not(.hs-primary-button)):active {
+    filter: brightness(1.08);
+  }
+}

@@ -91,6 +91,7 @@ export function SignInForm({
 
       <PrimaryButton
         type="submit"
+        loading={pending}
         disabled={pending}
         className={`w-full justify-center rounded-xl bg-[var(--hs-accent)] font-semibold shadow-[0_12px_28px_-8px_rgba(37,99,235,0.55)] ${
           compact ? "py-2.5 text-sm" : "py-3 text-[15px]"
