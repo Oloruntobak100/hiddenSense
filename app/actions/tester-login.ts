@@ -31,6 +31,7 @@ export async function testerQuickEnter(
         phone: "+10000000099",
         email_opt_in: true,
         sms_opt_in: false,
+        alcohol_policy: "adult",
       })
       .select("id")
       .single();

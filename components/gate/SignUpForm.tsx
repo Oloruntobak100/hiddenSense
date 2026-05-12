@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
+import { resolveAgeForSignupMetadata } from "@/app/actions/age-consent";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 const labelCls =
@@ -49,6 +50,7 @@ export function SignUpForm({
     const phone = String(fd.get("phone") ?? "").trim();
 
     try {
+      const alcohol_policy = await resolveAgeForSignupMetadata();
       const supabase = createBrowserSupabaseClient();
       const base = getBrowserAuthBaseUrl();
       const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(authNextPath)}`;
@@ -62,6 +64,7 @@ export function SignUpForm({
             first_name: firstName,
             last_name: "",
             phone,
+            alcohol_policy,
             // No marketing toggles in UI; keep explicit defaults for profile sync.
             email_opt_in: false,
             sms_opt_in: false,

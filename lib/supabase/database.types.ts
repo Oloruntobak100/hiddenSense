@@ -18,6 +18,7 @@ export interface Database {
           phone: string;
           email_opt_in: boolean;
           sms_opt_in: boolean;
+          alcohol_policy: "adult" | "minor";
           auth_user_id: string | null;
           created_at: string;
         };
@@ -29,6 +30,7 @@ export interface Database {
           phone: string;
           email_opt_in?: boolean;
           sms_opt_in?: boolean;
+          alcohol_policy?: "adult" | "minor";
           auth_user_id?: string | null;
           created_at?: string;
         };
