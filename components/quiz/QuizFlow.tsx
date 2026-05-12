@@ -121,7 +121,6 @@ export function QuizFlow() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [startedAt] = useState(() => Date.now());
-  const [signedIn, setSignedIn] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -196,17 +195,6 @@ export function QuizFlow() {
   };
 
   useEffect(() => {
-    const sb = createBrowserSupabaseClient();
-    void sb.auth.getSession().then(({ data }) => {
-      setSignedIn(Boolean(data.session?.user));
-    });
-    const { data: sub } = sb.auth.onAuthStateChange((_evt, session) => {
-      setSignedIn(Boolean(session?.user));
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (feedbackTimerRef.current) {
         clearTimeout(feedbackTimerRef.current);
@@ -214,7 +202,7 @@ export function QuizFlow() {
     };
   }, []);
 
-  const handleViewResults = () => {
+  const handleViewResults = async () => {
     setError(null);
     const payload = buildQuizPayload(answers);
     if (!payload) {
@@ -225,10 +213,16 @@ export function QuizFlow() {
       setError("Complete each taste prompt to continue.");
       return;
     }
-    if (signedIn) {
+
+    const sb = createBrowserSupabaseClient();
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
+    if (user) {
       submitMoodCalibration(answers, tasteAnswers);
       return;
     }
+
     const tasteLane = deriveTasteLane(tasteAnswers);
     // eslint-disable-next-line react-hooks/purity -- click handler; wall-clock duration
     const sessionDurationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
@@ -445,7 +439,9 @@ export function QuizFlow() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleViewResults}
+                  onClick={() => {
+                    void handleViewResults();
+                  }}
                   disabled={pending}
                   className="min-h-12 rounded-xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-6 py-3 text-[15px] font-semibold text-white shadow-[0_18px_40px_-18px_rgba(124,58,237,0.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:py-2.5 sm:text-sm"
                 >
