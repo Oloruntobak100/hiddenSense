@@ -101,3 +101,31 @@ body {
     filter: brightness(1.08);
   }
 }
+
+@keyframes hs-age-orbit {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.28;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.72;
+  }
+}
+
+.hs-age-orbit {
+  animation: hs-age-orbit 2.5s ease-in-out infinite;
+}
+
+.hs-age-orbit-rev {
+  animation: hs-age-orbit 2.5s ease-in-out infinite reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-age-orbit,
+  .hs-age-orbit-rev {
+    animation: none;
+    opacity: 0.45;
+  }
+}
