@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DEMO_SESSION_ID } from "@/lib/session/constants";
 import { getDemoResultPayload } from "@/lib/session/demo";
 import { getQuizSessionForProfile } from "@/lib/data/quiz-session";
 import { MOOD_FEELINGS } from "@/lib/catalog/moods";
 import { getRecommendation } from "@/lib/catalog/recommendations";
-import { getCurrentProfileId } from "@/lib/auth/current-profile";
+import { getAuthUserId, getCurrentProfileId } from "@/lib/auth/current-profile";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { upsertProfileFromAuthUser } from "@/lib/profile/sync-from-user";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { PurchaseCta } from "@/components/result/PurchaseCta";
 
@@ -86,10 +88,12 @@ export default async function ResultPage({
   searchParams: Promise<{ moodResultId?: string }>;
 }) {
   const [{ sessionId }, qs] = await Promise.all([params, searchParams]);
-  const profileId = await getCurrentProfileId();
-  if (!profileId) {
-    notFound();
+
+  const returnQuery = new URLSearchParams();
+  if (typeof qs.moodResultId === "string" && qs.moodResultId.trim()) {
+    returnQuery.set("moodResultId", qs.moodResultId.trim());
   }
+  const resultPath = `/result/${sessionId}${returnQuery.toString() ? `?${returnQuery}` : ""}`;
 
   type RowLite = {
     id: string;
@@ -99,6 +103,7 @@ export default async function ResultPage({
 
   let row: RowLite;
   let isMinor = false;
+  let profileId: string | null = null;
 
   if (sessionId === DEMO_SESSION_ID) {
     const demo = await getDemoResultPayload();
@@ -111,6 +116,25 @@ export default async function ResultPage({
       mood_name: demo.mood_name,
     };
   } else {
+    profileId = await getCurrentProfileId();
+    if (!profileId) {
+      const userId = await getAuthUserId();
+      if (!userId) {
+        redirect(`/gate?next=${encodeURIComponent(resultPath)}`);
+      }
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await upsertProfileFromAuthUser(user);
+      }
+      profileId = await getCurrentProfileId();
+      if (!profileId) {
+        redirect("/dashboard");
+      }
+    }
+
     const dbRow = await getQuizSessionForProfile(sessionId);
     if (!dbRow) {
       notFound();
@@ -129,6 +153,9 @@ export default async function ResultPage({
   let squareCheckoutUrl: string | null = null;
 
   if (sessionId !== DEMO_SESSION_ID) {
+    if (!profileId) {
+      notFound();
+    }
     const sb = getSupabaseAdmin();
     const query = sb
       .from("mood_results")

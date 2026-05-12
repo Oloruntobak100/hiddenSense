@@ -54,7 +54,6 @@ export async function middleware(request: NextRequest) {
       pathname === "/dashboard" ||
       pathname.startsWith("/dashboard/") ||
       pathname === "/profile" ||
-      pathname.startsWith("/result/") ||
       pathname.startsWith("/feedback/"));
 
   if (
