@@ -459,44 +459,47 @@ export function QuizFlow() {
 
       {signupOpen ? (
         <div
-          className="fixed inset-0 z-[90] flex items-end justify-center bg-black/75 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-[90] overflow-y-auto overscroll-y-contain hs-hide-scrollbar"
           role="dialog"
           aria-modal="true"
           aria-labelledby="quiz-signup-title"
         >
-          <div className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto sm:max-w-lg">
-            <button
-              type="button"
-              onClick={() => setSignupOpen(false)}
-              className="absolute right-0 top-0 z-10 rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
-              aria-label="Close"
-            >
-              ✕
-            </button>
-            <div className="pr-10 pt-1 text-left sm:pr-12">
-              <header className="text-center">
-                <div className="mb-4 flex justify-center sm:mb-5">
-                  <LogoMark />
-                </div>
-                <h2
-                  id="quiz-signup-title"
-                  className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55"
-                >
-                  Create account
-                </h2>
-                <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
-                  We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™ pairing.
-                </p>
-              </header>
+          <div className="flex min-h-[100dvh] w-full items-end justify-center bg-black/75 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center sm:p-6">
+            <div className="relative w-full max-w-md shrink-0 sm:max-w-lg">
+              <button
+                type="button"
+                onClick={() => setSignupOpen(false)}
+                className="absolute right-0 top-0 z-10 rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+              <div className="pr-10 pt-1 text-left sm:pr-12">
+                <header className="text-center">
+                  <div className="mb-4 flex justify-center sm:mb-5">
+                    <LogoMark />
+                  </div>
+                  <h2
+                    id="quiz-signup-title"
+                    className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55"
+                  >
+                    Create account
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
+                    We&apos;ll email you a confirmation link—tap it on this device to verify and start your HiddenSense™
+                    pairing.
+                  </p>
+                </header>
 
-              <div className="relative mt-6 w-full overflow-hidden rounded-3xl border border-white/45 bg-white/88 p-5 shadow-[0_28px_70px_-24px_rgba(0,0,0,0.65),0_0_0_1px_rgba(37,99,235,0.08)] backdrop-blur-xl sm:mt-7 sm:p-7">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--hs-accent)]/45 to-transparent"
-                />
-                <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading form…</p>}>
-                  <SignUpForm showSwitchLink={false} compact authNextPath="/quiz/complete" />
-                </Suspense>
+                <div className="relative mt-6 w-full overflow-hidden rounded-3xl border border-white/45 bg-white/88 p-5 shadow-[0_28px_70px_-24px_rgba(0,0,0,0.65),0_0_0_1px_rgba(37,99,235,0.08)] backdrop-blur-xl sm:mt-7 sm:p-7">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--hs-accent)]/45 to-transparent"
+                  />
+                  <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading form…</p>}>
+                    <SignUpForm showSwitchLink={false} compact authNextPath="/quiz/complete" />
+                  </Suspense>
+                </div>
               </div>
             </div>
           </div>
