@@ -22,6 +22,10 @@ type SignUpFormProps = {
   compact?: boolean;
   /** Post-confirmation redirect (allowlisted). Defaults from `?next=` or `/dashboard`. */
   authNextPath?: string;
+  /** Email + optional DOB only; magic link creates the Auth user (e.g. quiz / gate). */
+  passwordless?: boolean;
+  /** Prefill email (e.g. after Sign in detected a new address). */
+  defaultEmailHint?: string;
 };
 
 export function SignUpForm({
@@ -29,6 +33,8 @@ export function SignUpForm({
   switchHref = "/login",
   compact = false,
   authNextPath: authNextPathProp,
+  passwordless = false,
+  defaultEmailHint = "",
 }: SignUpFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,8 +57,8 @@ export function SignUpForm({
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
-    const firstName = String(fd.get("firstName") ?? "").trim();
-    const phone = String(fd.get("phone") ?? "").trim();
+    const firstName = passwordless ? "" : String(fd.get("firstName") ?? "").trim();
+    const phone = passwordless ? "" : String(fd.get("phone") ?? "").trim();
     const dateOfBirth = String(fd.get("dateOfBirth") ?? "").trim();
 
     try {
@@ -96,9 +102,9 @@ export function SignUpForm({
           shouldCreateUser: true,
           emailRedirectTo: redirectTo,
           data: {
-            first_name: firstName,
+            first_name: passwordless ? "Friend" : firstName,
             last_name: "",
-            phone,
+            phone: passwordless ? "" : phone,
             alcohol_policy,
             ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
             // No marketing toggles in UI; keep explicit defaults for profile sync.
@@ -141,19 +147,21 @@ export function SignUpForm({
         </p>
       ) : null}
 
-      <div className={compact ? "space-y-1" : "space-y-1.5"}>
-        <label className={labelCls} htmlFor="firstName">
-          First name
-        </label>
-        <input
-          id="firstName"
-          name="firstName"
-          autoComplete="given-name"
-          required
-          className={inputCls}
-          placeholder="Alex"
-        />
-      </div>
+      {!passwordless ? (
+        <div className={compact ? "space-y-1" : "space-y-1.5"}>
+          <label className={labelCls} htmlFor="firstName">
+            First name
+          </label>
+          <input
+            id="firstName"
+            name="firstName"
+            autoComplete="given-name"
+            required
+            className={inputCls}
+            placeholder="Alex"
+          />
+        </div>
+      ) : null}
 
       <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="email">
@@ -161,42 +169,49 @@ export function SignUpForm({
         </label>
         <input
           id="email"
+          key={defaultEmailHint || "signup-email-empty"}
           name="email"
           type="email"
           autoComplete="email"
           required
+          defaultValue={defaultEmailHint}
           className={inputCls}
           placeholder="you@example.com"
         />
       </div>
 
-      <div className={compact ? "space-y-1" : "space-y-1.5"}>
-        <label className={labelCls} htmlFor="phone">
-          Phone
-        </label>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          required
-          className={inputCls}
-          placeholder="+1 555 123 4567"
-        />
-      </div>
+      {!passwordless ? (
+        <>
+          <div className={compact ? "space-y-1" : "space-y-1.5"}>
+            <label className={labelCls} htmlFor="phone">
+              Phone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              className={inputCls}
+              placeholder="+1 555 123 4567"
+            />
+          </div>
 
-      <div className={compact ? "space-y-1" : "space-y-1.5"}>
-        <label className={labelCls} htmlFor="dateOfBirth">
-          Date of birth <span className="font-normal normal-case text-[var(--hs-muted)]">(optional)</span>
-        </label>
-        <input
-          id="dateOfBirth"
-          name="dateOfBirth"
-          type="date"
-          className={inputCls}
-          max={maxDob}
-        />
-      </div>
+          <div className={compact ? "space-y-1" : "space-y-1.5"}>
+            <label className={labelCls} htmlFor="dateOfBirth">
+              Date of birth <span className="font-normal normal-case text-[var(--hs-muted)]">(optional)</span>
+            </label>
+            <input id="dateOfBirth" name="dateOfBirth" type="date" className={inputCls} max={maxDob} />
+          </div>
+        </>
+      ) : (
+        <div className={compact ? "space-y-1" : "space-y-1.5"}>
+          <label className={labelCls} htmlFor="dateOfBirth">
+            Date of birth <span className="font-normal normal-case text-[var(--hs-muted)]">(optional)</span>
+          </label>
+          <input id="dateOfBirth" name="dateOfBirth" type="date" className={inputCls} max={maxDob} />
+        </div>
+      )}
 
       <PrimaryButton
         type="submit"
@@ -209,8 +224,10 @@ export function SignUpForm({
         {pending
           ? pendingPhase === "check"
             ? "Checking…"
-            : "Sending…"
-          : "Create Account"}
+            : "Sending link…"
+          : passwordless
+            ? "Send magic link"
+            : "Create Account"}
       </PrimaryButton>
 
       {showSwitchLink ? (

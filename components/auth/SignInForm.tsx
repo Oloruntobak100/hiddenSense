@@ -19,6 +19,8 @@ type SignInFormProps = {
   showHomeLink?: boolean;
   /** Prefill email (e.g. last magic link on this tab). */
   defaultEmailHint?: string;
+  /** When the email is not registered, switch to sign-up instead of only showing an error. */
+  onSuggestSignUp?: (email: string) => void;
 };
 
 export function SignInForm({
@@ -28,6 +30,7 @@ export function SignInForm({
   authNextPath: authNextPathProp,
   showHomeLink = true,
   defaultEmailHint = "",
+  onSuggestSignUp,
 }: SignInFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,6 +62,11 @@ export function SignInForm({
         return;
       }
       if (!lookup.registered) {
+        if (onSuggestSignUp) {
+          writeQuizLastAuthEmail(email);
+          onSuggestSignUp(email);
+          return;
+        }
         setError("We don't have an account for that email yet. Open the Sign up tab to create one.");
         return;
       }
@@ -150,8 +158,8 @@ export function SignInForm({
         {pending
           ? pendingPhase === "check"
             ? "Checking…"
-            : "Sending…"
-          : "Email me the link"}
+            : "Sending link…"
+          : "Sign in"}
       </PrimaryButton>
 
       {showSwitchLink ? (

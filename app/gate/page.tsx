@@ -32,8 +32,8 @@ export default async function GatePage({
             Sign in or create account
           </h1>
           <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
-            We&apos;ll email a magic link—tap it on this device. Returning on the same browser? Your email can be
-            prefilled; after the first sign-in, you stay logged in until you sign out.
+            Sign in (existing email) or Sign up (new email)—both use a one-time magic link. After you open the link on
+            this device, your session stays active in this browser until you choose Log out.
           </p>
         </header>
 

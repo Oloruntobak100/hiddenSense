@@ -27,6 +27,7 @@ export function AuthTabs({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [embeddedMode, setEmbeddedMode] = useState<AuthMode>(defaultMode);
+  const [signUpEmailPrefill, setSignUpEmailPrefill] = useState("");
 
   const pageMode = useMemo<AuthMode>(
     () => ((searchParams.get("mode") ?? "").toLowerCase() === "signup" ? "signup" : "signin"),
@@ -36,6 +37,9 @@ export function AuthTabs({
   const mode = variant === "embedded" ? embeddedMode : pageMode;
 
   function goMode(next: AuthMode) {
+    if (next === "signin") {
+      setSignUpEmailPrefill("");
+    }
     if (variant === "embedded") {
       setEmbeddedMode(next);
       return;
@@ -90,11 +94,21 @@ export function AuthTabs({
               authNextPath={authNextPath}
               showHomeLink={variant === "page"}
               defaultEmailHint={defaultEmailHint}
+              onSuggestSignUp={(email) => {
+                setSignUpEmailPrefill(email);
+                goMode("signup");
+              }}
             />
           </Suspense>
         ) : (
           <Suspense fallback={<p className="text-center text-sm text-[var(--hs-muted)]">Loading…</p>}>
-            <SignUpForm showSwitchLink={false} compact authNextPath={authNextPath} />
+            <SignUpForm
+              showSwitchLink={false}
+              compact
+              authNextPath={authNextPath}
+              passwordless={variant === "embedded"}
+              defaultEmailHint={signUpEmailPrefill}
+            />
           </Suspense>
         )}
       </div>

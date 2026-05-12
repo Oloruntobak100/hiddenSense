@@ -7,7 +7,8 @@ const isProd = process.env.NODE_ENV === "production";
  * auth cookies serialize the same way (avoids early “logged out” / split client).
  *
  * - `path: "/"` — sent on /quiz, /dashboard, server actions, etc.
- * - `maxAge` — keep cookie jars across browser restarts until Supabase revokes the refresh token.
+ * - `maxAge` — keep auth cookies across browser restarts (long-lived jar). There is no app-imposed idle timeout;
+ *   Supabase refreshes access tokens while the tab is used. Session ends when the user visits `/logout` or clears site data.
  * - `sameSite: "lax"` — magic-link return still lands with cookies on first navigation.
  */
 export const supabaseAuthCookieOptions: CookieOptionsWithName = {
