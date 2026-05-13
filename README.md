@@ -11,7 +11,7 @@ Next.js App Router • React • Tailwind v4 • Supabase Postgres (writes via s
 - Node.js 20+
 - A Supabase project (optional during `next dev` thanks to offline demo)
 
-## Tester login (skip gate)
+## Tester login (skip `/login` gate)
 
 - In **development** (`next dev`), visit [http://localhost:3000/login](http://localhost:3000/login) or use **“Tester login”** on the home page.
 - **With Supabase configured:** creates a throwaway `profiles` row and runs the full funnel (quiz rows in the DB).
@@ -76,7 +76,7 @@ If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is
 ## User flow (production auth)
 
 1. **Home** — Age consent (21+ / under 21) then **Get started** opens the public **`/quiz`**, or **Sign in** goes to **`/login`**.
-2. **`/gate`** or login **Sign up** — First name, last name, email, phone, marketing toggles. Supabase **`signInWithOtp`** sends a **confirmation link** (no in-app code). Redirect target: **`/auth/callback?next=…`** then profile sync.
+2. **`/login` Sign up** — Full form (name, email, phone, etc.) or passwordless embedded flow on **`/quiz`**; Supabase **`signInWithOtp`** sends a **confirmation link** (no in-app code). Redirect target: **`/auth/callback?next=…`** then profile sync. Legacy **`/gate`** URLs redirect to **`/login`**.
 3. **`/verify?email=`** — Static “check your email” (no code field).
 4. **`/quiz`** — Anonymous mood + taste flow; **View results** prompts account creation if needed; answers are stored in **`localStorage`** until the session is saved.
 5. **`/quiz/complete`** — After the email link, submits the pending quiz and redirects to **`/result/[sessionId]`**.

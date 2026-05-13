@@ -13,7 +13,7 @@ export default async function VerifyPage({
   const email = raw?.trim() ?? "";
 
   if (!email) {
-    redirect("/gate");
+    redirect("/login");
   }
 
   return (

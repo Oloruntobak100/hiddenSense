@@ -122,7 +122,7 @@ export default async function ResultPage({
     if (!profileId) {
       const userId = await getAuthUserId();
       if (!userId) {
-        redirect(`/gate?next=${encodeURIComponent(resultPath)}`);
+        redirect(`/login?next=${encodeURIComponent(resultPath)}`);
       }
       const supabase = await createServerSupabaseClient();
       const {

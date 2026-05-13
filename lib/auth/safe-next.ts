@@ -4,7 +4,7 @@ export function getSafeInternalNext(next: string | null | undefined, fallback = 
   const t = next.trim();
   if (!t.startsWith("/") || t.startsWith("//")) return fallback;
   if (t.includes("..")) return fallback;
-  const blocked = ["/auth/callback", "/gate", "/login"];
+  const blocked = ["/auth/callback", "/login", "/gate"];
   for (const b of blocked) {
     if (t === b || t.startsWith(`${b}?`)) return fallback;
   }

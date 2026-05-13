@@ -72,6 +72,7 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
               {isAdmin ? (
                 <Link
                   href="/admin"
+                  prefetch={false}
                   onClick={() => setOpen(false)}
                   className="block rounded-xl px-3 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/15 hover:text-indigo-100"
                 >

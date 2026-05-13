@@ -26,12 +26,12 @@ const FeedbackSchema = z.object({
 export async function submitFeedback(sessionId: string, formData: FormData) {
   const profileId = await getCurrentProfileId();
   if (!profileId) {
-    redirect("/gate");
+    redirect("/login");
   }
 
   if (sessionId === DEMO_SESSION_ID) {
     if (!(await isDemoSession())) {
-      redirect("/gate");
+      redirect("/login");
     }
     if (!(await getDemoResultPayload())) {
       redirect("/quiz");

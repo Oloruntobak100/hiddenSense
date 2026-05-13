@@ -16,11 +16,12 @@ function allowTesterCookieBypass(request: NextRequest): boolean {
   return !!(raw && isUuid(raw));
 }
 
-/** Supabase may refresh tokens on `response`; redirects must carry those Set-Cookie headers. */
+/** Supabase may refresh tokens on `from`; redirects must carry those Set-Cookie headers. */
 function copySupabaseCookiesAndCacheHeaders(from: NextResponse, to: NextResponse) {
   for (const c of from.cookies.getAll()) {
     const { name, value, ...opts } = c;
-    to.cookies.set(name, value, opts);
+    const cleaned = Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined));
+    to.cookies.set(name, value, cleaned);
   }
   for (const key of ["cache-control", "pragma", "expires"] as const) {
     const v = from.headers.get(key);
@@ -61,6 +62,8 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  // Hydrate from cookies first; then validate JWT (Supabase SSR pattern).
+  await supabase.auth.getSession();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -76,15 +79,23 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/feedback/"));
 
   if (needsAuth && !user && !allowTesterCookieBypass(request)) {
-    const gate = new URL("/gate", request.url);
-    gate.searchParams.set("next", pathname);
-    const redirect = NextResponse.redirect(gate);
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+    const redirect = NextResponse.redirect(login);
     copySupabaseCookiesAndCacheHeaders(response, redirect);
     return redirect;
   }
 
   if (pathname.startsWith("/admin")) {
-    if (!user || !isAdminEmail(user.email)) {
+    if (!user) {
+      const login = new URL("/login", request.url);
+      const returnTo = `${pathname}${request.nextUrl.search}`;
+      login.searchParams.set("next", returnTo);
+      const redirect = NextResponse.redirect(login);
+      copySupabaseCookiesAndCacheHeaders(response, redirect);
+      return redirect;
+    }
+    if (!isAdminEmail(user.email)) {
       const redirect = NextResponse.redirect(new URL("/dashboard", request.url));
       copySupabaseCookiesAndCacheHeaders(response, redirect);
       return redirect;
