@@ -31,9 +31,8 @@ export default async function GatePage({
           <h1 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
             Sign in or create account
           </h1>
-          <p className="mx-auto mt-3 max-w-[26rem] text-pretty text-sm leading-relaxed text-white/90 sm:text-base">
-            Sign in (existing email) or Sign up (new email)—both use a one-time magic link. After you open the link on
-            this device, your session stays active in this browser until you choose Log out.
+          <p className="mx-auto mt-3 max-w-[22rem] text-pretty text-sm leading-relaxed text-white/85 sm:text-base">
+            Sign in or create an account. We&apos;ll email you a link—tap it once to continue.
           </p>
         </header>
 
