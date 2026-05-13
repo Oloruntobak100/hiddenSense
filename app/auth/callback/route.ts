@@ -1,5 +1,4 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { upsertProfileFromAuthUser } from "@/lib/profile/sync-from-user";
@@ -18,26 +17,29 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const cookieStore = await cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !anon) {
     return NextResponse.redirect(new URL("/login?error=config", siteOrigin));
   }
 
+  const redirectOnSuccess = new URL(nextPath, siteOrigin);
+  const response = NextResponse.redirect(redirectOnSuccess);
+
   const supabase = createServerClient(supabaseUrl, anon, {
     cookieOptions: supabaseAuthCookieOptions,
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
-        } catch {
-          /* ignore */
+      setAll(cookiesToSet, responseHeaders) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+        if (responseHeaders) {
+          for (const [key, value] of Object.entries(responseHeaders)) {
+            response.headers.set(key, String(value));
+          }
         }
       },
     },
@@ -57,5 +59,5 @@ export async function GET(request: NextRequest) {
     await upsertProfileFromAuthUser(user);
   }
 
-  return NextResponse.redirect(new URL(nextPath, siteOrigin));
+  return response;
 }
