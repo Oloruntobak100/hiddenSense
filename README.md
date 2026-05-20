@@ -89,4 +89,9 @@ Middleware protects **`/dashboard`**, **`/intro`** (redirects to `/dashboard`), 
 
 ## Supabase Auth settings
 
-In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email** and configure templates to send a **6-digit OTP** (`{{ .Token }}`), not magic-link URLs. Keep **`{SITE_URL}/auth/callback`** in redirect URLs if you still use link-based flows elsewhere. Site URL should match `NEXT_PUBLIC_SITE_URL`.
+In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email** and configure **both** templates to use `{{ .Token }}` (see [`supabase/email-templates/`](supabase/email-templates/)):
+
+- **Confirm signup** — new accounts (Sign up tab / quiz sign up)
+- **Magic Link** — returning users (Sign in tab); this is separate from Confirm signup and still defaults to a login link until you replace it
+
+Do not use `{{ .ConfirmationURL }}` in those bodies if you want in-app code entry on `/verify`. Site URL should match `NEXT_PUBLIC_SITE_URL`.
