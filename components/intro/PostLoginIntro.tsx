@@ -69,6 +69,13 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
               >
                 Manage Profile
               </Link>
+              <Link
+                href="/my-results"
+                onClick={() => setOpen(false)}
+                className="block rounded-xl px-3 py-2 text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
+              >
+                My Results
+              </Link>
               {isAdmin ? (
                 <Link
                   href="/admin"
