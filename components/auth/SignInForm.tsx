@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { writeQuizLastAuthEmail } from "@/lib/auth/quiz-auth-cue";
 import { checkRegisteredEmail } from "@/app/actions/auth-email-lookup";
@@ -14,10 +13,10 @@ type SignInFormProps = {
   showSwitchLink?: boolean;
   switchHref?: string;
   compact?: boolean;
-  /** When set, overrides `?next=` for post–magic-link redirect. */
+  /** When set, overrides `?next=` for post-verification redirect. */
   authNextPath?: string;
   showHomeLink?: boolean;
-  /** Prefill email (e.g. last magic link on this tab). */
+  /** Prefill email (e.g. last OTP on this tab). */
   defaultEmailHint?: string;
   /** When the email is not registered, switch to sign-up instead of only showing an error. */
   onSuggestSignUp?: (email: string) => void;
@@ -53,8 +52,6 @@ export function SignInForm({
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const base = getBrowserAuthBaseUrl();
-      const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
       const lookup = await checkRegisteredEmail(email);
       if (!lookup.ok) {
@@ -93,13 +90,12 @@ export function SignInForm({
         email,
         options: {
           shouldCreateUser: false,
-          emailRedirectTo: redirectTo,
         },
       });
 
       if (signErr) {
         const msg = signErr.message.toLowerCase().includes("rate")
-          ? "Too many sign-in emails were sent recently. Wait a few minutes, or check your inbox for an existing link."
+          ? "Too many sign-in emails were sent recently. Wait a few minutes, or check your inbox for an existing code."
           : signErr.message;
         setError(msg);
         return;
@@ -107,7 +103,12 @@ export function SignInForm({
 
       writeQuizLastAuthEmail(email);
 
-      router.push(`/verify?email=${encodeURIComponent(email)}`);
+      const verifyQs = new URLSearchParams({
+        email,
+        next: nextPath,
+        flow: "signin",
+      });
+      router.push(`/verify?${verifyQs.toString()}`);
       router.refresh();
     } catch {
       setError("Something went wrong. Try again.");
@@ -158,7 +159,7 @@ export function SignInForm({
         {pending
           ? pendingPhase === "check"
             ? "Checking…"
-            : "Sending link…"
+            : "Sending code…"
           : "Sign in"}
       </PrimaryButton>
 

@@ -1,4 +1,4 @@
-/** Allowlisted in-app redirect target after email confirmation / magic link. */
+/** Allowlisted in-app redirect target after email OTP verification. */
 export function getSafeInternalNext(next: string | null | undefined, fallback = "/dashboard"): string {
   if (!next || typeof next !== "string") return fallback;
   const t = next.trim();

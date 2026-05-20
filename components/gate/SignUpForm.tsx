@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { getBrowserAuthBaseUrl } from "@/lib/env";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { resolveAgeForSignupMetadata } from "@/app/actions/age-consent";
 import { checkRegisteredEmail } from "@/app/actions/auth-email-lookup";
@@ -22,7 +21,7 @@ type SignUpFormProps = {
   compact?: boolean;
   /** Post-confirmation redirect (allowlisted). Defaults from `?next=` or `/dashboard`. */
   authNextPath?: string;
-  /** Email + optional DOB only; magic link creates the Auth user (e.g. quiz / gate). */
+  /** Email + optional DOB only; OTP creates the Auth user (e.g. quiz embed). */
   passwordless?: boolean;
   /** Prefill email (e.g. after Sign in detected a new address). */
   defaultEmailHint?: string;
@@ -58,13 +57,11 @@ export function SignUpForm({
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
     const firstName = passwordless ? "" : String(fd.get("firstName") ?? "").trim();
-    const phone = passwordless ? "" : String(fd.get("phone") ?? "").trim();
+    const lastName = passwordless ? "" : String(fd.get("lastName") ?? "").trim();
     const dateOfBirth = String(fd.get("dateOfBirth") ?? "").trim();
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const base = getBrowserAuthBaseUrl();
-      const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(authNextPath)}`;
 
       const {
         data: { session },
@@ -88,7 +85,7 @@ export function SignUpForm({
         return;
       }
       if (lookup.registered) {
-        setError("That email already has an account. Use the Sign in tab to get your link.");
+        setError("That email already has an account. Use the Sign in tab to get your code.");
         return;
       }
 
@@ -100,14 +97,12 @@ export function SignUpForm({
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: redirectTo,
           data: {
             first_name: passwordless ? "Friend" : firstName,
-            last_name: "",
-            phone: passwordless ? "" : phone,
+            last_name: passwordless ? "" : lastName,
+            phone: "",
             alcohol_policy,
             ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
-            // No marketing toggles in UI; keep explicit defaults for profile sync.
             email_opt_in: false,
             sms_opt_in: false,
           },
@@ -124,7 +119,12 @@ export function SignUpForm({
 
       writeQuizLastAuthEmail(email);
 
-      router.push(`/verify?email=${encodeURIComponent(email)}`);
+      const verifyQs = new URLSearchParams({
+        email,
+        next: authNextPath,
+        flow: "signup",
+      });
+      router.push(`/verify?${verifyQs.toString()}`);
       router.refresh();
     } catch {
       setError("Something went wrong. Try again.");
@@ -148,19 +148,34 @@ export function SignUpForm({
       ) : null}
 
       {!passwordless ? (
-        <div className={compact ? "space-y-1" : "space-y-1.5"}>
-          <label className={labelCls} htmlFor="firstName">
-            First name
-          </label>
-          <input
-            id="firstName"
-            name="firstName"
-            autoComplete="given-name"
-            required
-            className={inputCls}
-            placeholder="Alex"
-          />
-        </div>
+        <>
+          <div className={compact ? "space-y-1" : "space-y-1.5"}>
+            <label className={labelCls} htmlFor="firstName">
+              First name
+            </label>
+            <input
+              id="firstName"
+              name="firstName"
+              autoComplete="given-name"
+              required
+              className={inputCls}
+              placeholder="Alex"
+            />
+          </div>
+          <div className={compact ? "space-y-1" : "space-y-1.5"}>
+            <label className={labelCls} htmlFor="lastName">
+              Last name
+            </label>
+            <input
+              id="lastName"
+              name="lastName"
+              autoComplete="family-name"
+              required
+              className={inputCls}
+              placeholder="Rivera"
+            />
+          </div>
+        </>
       ) : null}
 
       <div className={compact ? "space-y-1" : "space-y-1.5"}>
@@ -180,38 +195,22 @@ export function SignUpForm({
         />
       </div>
 
-      {!passwordless ? (
-        <>
-          <div className={compact ? "space-y-1" : "space-y-1.5"}>
-            <label className={labelCls} htmlFor="phone">
-              Phone
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              required
-              className={inputCls}
-              placeholder="+1 555 123 4567"
-            />
-          </div>
-
-          <div className={compact ? "space-y-1" : "space-y-1.5"}>
-            <label className={labelCls} htmlFor="dateOfBirth">
-              Date of birth <span className="font-normal normal-case text-[var(--hs-muted)]">(optional)</span>
-            </label>
-            <input id="dateOfBirth" name="dateOfBirth" type="date" className={inputCls} max={maxDob} />
-          </div>
-        </>
-      ) : (
-        <div className={compact ? "space-y-1" : "space-y-1.5"}>
-          <label className={labelCls} htmlFor="dateOfBirth">
-            Date of birth <span className="font-normal normal-case text-[var(--hs-muted)]">(optional)</span>
-          </label>
-          <input id="dateOfBirth" name="dateOfBirth" type="date" className={inputCls} max={maxDob} />
-        </div>
-      )}
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
+        <label className={labelCls} htmlFor="dateOfBirth">
+          Date of birth
+          {passwordless ? (
+            <span className="font-normal normal-case text-[var(--hs-muted)]"> (optional)</span>
+          ) : null}
+        </label>
+        <input
+          id="dateOfBirth"
+          name="dateOfBirth"
+          type="date"
+          required={!passwordless}
+          className={inputCls}
+          max={maxDob}
+        />
+      </div>
 
       <PrimaryButton
         type="submit"
@@ -224,9 +223,9 @@ export function SignUpForm({
         {pending
           ? pendingPhase === "check"
             ? "Checking…"
-            : "Sending link…"
+            : "Sending code…"
           : passwordless
-            ? "Send magic link"
+            ? "Send verification code"
             : "Create Account"}
       </PrimaryButton>
 

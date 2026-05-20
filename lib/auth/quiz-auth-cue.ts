@@ -1,4 +1,4 @@
-/** Remember last email used for magic link on this device (sessionStorage). */
+/** Remember last email used for OTP on this device (sessionStorage). */
 export const HS_QUIZ_LAST_AUTH_EMAIL_KEY = "hs_quiz_last_auth_email";
 
 export function readQuizLastAuthEmail(): string {

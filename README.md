@@ -76,17 +76,17 @@ If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is
 ## User flow (production auth)
 
 1. **Home** — Age consent (21+ / under 21) then **Get started** opens the public **`/quiz`**, or **Sign in** goes to **`/login`**.
-2. **`/login` Sign up** — Full form (name, email, phone, etc.) or passwordless embedded flow on **`/quiz`**; Supabase **`signInWithOtp`** sends a **confirmation link** (no in-app code). Redirect target: **`/auth/callback?next=…`** then profile sync. Legacy **`/gate`** URLs redirect to **`/login`**.
-3. **`/verify?email=`** — Static “check your email” (no code field).
+2. **`/login` Sign up** — First name, last name, email, date of birth (or passwordless email + optional DOB on **`/quiz`**); Supabase **`signInWithOtp`** sends a **verification code**. Legacy **`/gate`** URLs redirect to **`/login`**.
+3. **`/verify?email=&next=`** — Enter the email OTP; then profile sync and redirect to **`next`** (default **`/dashboard`**).
 4. **`/quiz`** — Anonymous mood + taste flow; **View results** prompts account creation if needed; answers are stored in **`localStorage`** until the session is saved.
-5. **`/quiz/complete`** — After the email link, submits the pending quiz and redirects to **`/result/[sessionId]`**.
+5. **`/quiz/complete`** — After verification, submits the pending quiz and redirects to **`/result/[sessionId]`**.
 6. **`/result/[sessionId]`** — Drink + food pairing cards, checkout when configured, link to **`/feedback/[sessionId]/mood`** for mood accuracy.
 7. **`/feedback/[sessionId]/mood`** — Absolutely / Close enough / Not really, then **`/feedback/[sessionId]`** for detailed feedback → **`/thanks`**.
 
-**`/login`** — Magic link (`signInWithOtp`) for returning users, same callback + optional `?next=`.
+**`/login`** — Email OTP (`signInWithOtp`) for returning users, then **`/verify`** + optional `?next=`.
 
 Middleware protects **`/dashboard`**, **`/intro`** (redirects to `/dashboard`), **`/profile`**, **`/result/*`**, **`/feedback/*`** (including **`/feedback/*/mood`**). **`/quiz`** and **`/quiz/complete`** are public. **`/auth/callback`** is not gated by the auth redirect. Signed-in visitors to **`/`** are redirected to **`/dashboard`**.
 
 ## Supabase Auth settings
 
-In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email**. Use **Confirm signup** / magic link templates (PKCE). Add redirect URLs: **`{SITE_URL}/auth/callback`** and query variants your app uses (e.g. `?next=/quiz/complete`). Site URL should match `NEXT_PUBLIC_SITE_URL`.
+In [Authentication → Providers → Email](https://supabase.com/dashboard/project/_/auth/providers): enable **Email** and configure templates to send a **6-digit OTP** (`{{ .Token }}`), not magic-link URLs. Keep **`{SITE_URL}/auth/callback`** in redirect URLs if you still use link-based flows elsewhere. Site URL should match `NEXT_PUBLIC_SITE_URL`.
