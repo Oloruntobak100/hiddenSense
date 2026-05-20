@@ -4,14 +4,18 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
+import { MyResultsModal } from "@/components/results/MyResultsModal";
+import type { MyResultItem } from "@/lib/data/my-results";
 
 type Props = {
   displayName: string;
   isAdmin: boolean;
+  myResults?: MyResultItem[];
 };
 
-export function PostLoginIntro({ displayName, isAdmin }: Props) {
+export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) {
   const [open, setOpen] = useState(false);
+  const [resultsOpen, setResultsOpen] = useState(false);
   const initials = useMemo(
     () =>
       displayName
@@ -69,13 +73,19 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
               >
                 Manage Profile
               </Link>
-              <Link
-                href="/my-results"
-                onClick={() => setOpen(false)}
-                className="block rounded-xl px-3 py-2 text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setResultsOpen(true);
+                }}
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
               >
                 My Results
-              </Link>
+                {myResults.length > 0 ? (
+                  <span className="ml-1 text-white/45">({myResults.length})</span>
+                ) : null}
+              </button>
               {isAdmin ? (
                 <Link
                   href="/admin"
@@ -147,6 +157,13 @@ export function PostLoginIntro({ displayName, isAdmin }: Props) {
           <p className="mt-3 text-xs tracking-wide text-white/58">Takes less than 60 seconds.</p>
         </motion.div>
       </motion.section>
+
+      <MyResultsModal
+        open={resultsOpen}
+        onClose={() => setResultsOpen(false)}
+        items={myResults}
+        displayName={displayName}
+      />
     </main>
   );
 }

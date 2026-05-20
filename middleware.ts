@@ -76,7 +76,6 @@ export async function middleware(request: NextRequest) {
       pathname === "/dashboard" ||
       pathname.startsWith("/dashboard/") ||
       pathname === "/profile" ||
-      pathname === "/my-results" ||
       pathname.startsWith("/feedback/"));
 
   if (needsAuth && !user && !allowTesterCookieBypass(request)) {

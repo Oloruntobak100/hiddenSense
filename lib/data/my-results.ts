@@ -1,5 +1,5 @@
 import "server-only";
-import { getCurrentProfileId } from "@/lib/auth/current-profile";
+import { ensureProfileId } from "@/lib/auth/ensure-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export type MyResultItem = {
@@ -19,7 +19,7 @@ function cocktailFromPayload(payload: unknown): string | null {
 }
 
 export async function listMyResults(): Promise<MyResultItem[]> {
-  const profileId = await getCurrentProfileId();
+  const profileId = await ensureProfileId();
   if (!profileId) return [];
 
   const sb = getSupabaseAdmin();
