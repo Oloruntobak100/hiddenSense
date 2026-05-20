@@ -21,7 +21,7 @@ type SignUpFormProps = {
   compact?: boolean;
   /** Post-confirmation redirect (allowlisted). Defaults from `?next=` or `/dashboard`. */
   authNextPath?: string;
-  /** Email + optional DOB only; OTP creates the Auth user (e.g. quiz embed). */
+  /** Quiz embed: shorter submit label (fields are the same as /login sign up). */
   passwordless?: boolean;
   /** Prefill email (e.g. after Sign in detected a new address). */
   defaultEmailHint?: string;
@@ -56,8 +56,8 @@ export function SignUpForm({
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
-    const firstName = passwordless ? "" : String(fd.get("firstName") ?? "").trim();
-    const lastName = passwordless ? "" : String(fd.get("lastName") ?? "").trim();
+    const firstName = String(fd.get("firstName") ?? "").trim();
+    const lastName = String(fd.get("lastName") ?? "").trim();
     const dateOfBirth = String(fd.get("dateOfBirth") ?? "").trim();
 
     try {
@@ -98,8 +98,8 @@ export function SignUpForm({
         options: {
           shouldCreateUser: true,
           data: {
-            first_name: passwordless ? "Friend" : firstName,
-            last_name: passwordless ? "" : lastName,
+            first_name: firstName || "Friend",
+            last_name: lastName,
             phone: "",
             alcohol_policy,
             ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
@@ -147,36 +147,33 @@ export function SignUpForm({
         </p>
       ) : null}
 
-      {!passwordless ? (
-        <>
-          <div className={compact ? "space-y-1" : "space-y-1.5"}>
-            <label className={labelCls} htmlFor="firstName">
-              First name
-            </label>
-            <input
-              id="firstName"
-              name="firstName"
-              autoComplete="given-name"
-              required
-              className={inputCls}
-              placeholder="Alex"
-            />
-          </div>
-          <div className={compact ? "space-y-1" : "space-y-1.5"}>
-            <label className={labelCls} htmlFor="lastName">
-              Last name
-            </label>
-            <input
-              id="lastName"
-              name="lastName"
-              autoComplete="family-name"
-              required
-              className={inputCls}
-              placeholder="Rivera"
-            />
-          </div>
-        </>
-      ) : null}
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
+        <label className={labelCls} htmlFor="firstName">
+          First name
+        </label>
+        <input
+          id="firstName"
+          name="firstName"
+          autoComplete="given-name"
+          required
+          className={inputCls}
+          placeholder="Alex"
+        />
+      </div>
+
+      <div className={compact ? "space-y-1" : "space-y-1.5"}>
+        <label className={labelCls} htmlFor="lastName">
+          Last name
+        </label>
+        <input
+          id="lastName"
+          name="lastName"
+          autoComplete="family-name"
+          required
+          className={inputCls}
+          placeholder="Rivera"
+        />
+      </div>
 
       <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="email">
@@ -198,15 +195,12 @@ export function SignUpForm({
       <div className={compact ? "space-y-1" : "space-y-1.5"}>
         <label className={labelCls} htmlFor="dateOfBirth">
           Date of birth
-          {passwordless ? (
-            <span className="font-normal normal-case text-[var(--hs-muted)]"> (optional)</span>
-          ) : null}
         </label>
         <input
           id="dateOfBirth"
           name="dateOfBirth"
           type="date"
-          required={!passwordless}
+          required
           className={inputCls}
           max={maxDob}
         />

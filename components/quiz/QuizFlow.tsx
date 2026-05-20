@@ -490,7 +490,7 @@ export function QuizFlow() {
                     Continue
                   </h2>
                   <p className="mx-auto mt-3 max-w-[22rem] text-pretty text-sm leading-relaxed text-white/85 sm:text-base">
-                    Sign in or create an account. We&apos;ll email you a link—tap it once to continue.
+                    Sign in or create an account. We&apos;ll email you a verification code to enter here.
                   </p>
                 </header>
 

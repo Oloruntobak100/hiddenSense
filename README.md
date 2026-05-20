@@ -76,7 +76,7 @@ If `NEXT_PUBLIC_CHECKOUT_BASE_URL` is omitted, `https://example.com/checkout` is
 ## User flow (production auth)
 
 1. **Home** — Age consent (21+ / under 21) then **Get started** opens the public **`/quiz`**, or **Sign in** goes to **`/login`**.
-2. **`/login` Sign up** — First name, last name, email, date of birth (or passwordless email + optional DOB on **`/quiz`**); Supabase **`signInWithOtp`** sends a **verification code**. Legacy **`/gate`** URLs redirect to **`/login`**.
+2. **`/login` Sign up** — First name, last name, email, date of birth (same fields on **`/quiz`** sign up); Supabase **`signInWithOtp`** sends a **verification code**. Legacy **`/gate`** URLs redirect to **`/login`**.
 3. **`/verify?email=&next=`** — Enter the email OTP; then profile sync and redirect to **`next`** (default **`/dashboard`**).
 4. **`/quiz`** — Anonymous mood + taste flow; **View results** prompts account creation if needed; answers are stored in **`localStorage`** until the session is saved.
 5. **`/quiz/complete`** — After verification, submits the pending quiz and redirects to **`/result/[sessionId]`**.
