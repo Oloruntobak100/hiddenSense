@@ -1,7 +1,10 @@
 import "server-only";
 
+import { pickAdminFoodListing } from "@/lib/admin/pick-food-listing";
 import { getRecommendation } from "@/lib/catalog/recommendations";
+import { isUsableUploadedImageUrl } from "@/lib/images/uploaded-url";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import type { TasteLane } from "@/lib/intelligence/taste-lane";
 
 type Payload = {
   cocktailName?: string;
@@ -11,16 +14,8 @@ type Payload = {
   imageUrl?: string | null;
   flavorNotes?: string;
   description?: string;
-  tasteLane?: "lemon" | "strawberry" | "apple";
+  tasteLane?: TasteLane;
 } | null | undefined;
-
-function isUsableImageUrl(raw: unknown): raw is string {
-  if (typeof raw !== "string") return false;
-  const trimmed = raw.trim();
-  if (!trimmed) return false;
-  if (trimmed.includes("picsum.photos")) return false;
-  return trimmed.startsWith("http://") || trimmed.startsWith("https://");
-}
 
 export type ResolvedResultAssets = {
   cocktailName: string;
@@ -30,7 +25,7 @@ export type ResolvedResultAssets = {
   foodImage: string | null;
   flavorNotes: string;
   description: string;
-  tasteLane: "lemon" | "strawberry" | "apple" | null;
+  tasteLane: TasteLane | null;
 };
 
 export async function resolveResultAssets(
@@ -39,9 +34,12 @@ export async function resolveResultAssets(
   recommendationId: string | null,
 ): Promise<ResolvedResultAssets> {
   const catalog = getRecommendation(moodKey);
+  const tasteLane = payload?.tasteLane ?? null;
 
-  let drinkImage: string | null = isUsableImageUrl(payload?.imageUrl) ? payload.imageUrl.trim() : null;
-  let foodImage: string | null = isUsableImageUrl(payload?.foodImageUrl) ? payload.foodImageUrl.trim() : null;
+  let drinkImage: string | null = isUsableUploadedImageUrl(payload?.imageUrl) ? payload.imageUrl.trim() : null;
+  let foodImage: string | null = isUsableUploadedImageUrl(payload?.foodImageUrl)
+    ? payload.foodImageUrl.trim()
+    : null;
 
   let cocktailName = payload?.cocktailName ?? catalog.cocktailName;
   let foodTitle =
@@ -67,13 +65,13 @@ export async function resolveResultAssets(
       if (typeof data.cocktail_name === "string" && data.cocktail_name.trim()) {
         cocktailName = data.cocktail_name.trim();
       }
-      if (isUsableImageUrl(data.image_url)) {
+      if (isUsableUploadedImageUrl(data.image_url)) {
         drinkImage = data.image_url.trim();
       }
       if (typeof data.food_name === "string" && data.food_name.trim()) {
         foodTitle = data.food_name.trim();
       }
-      if (isUsableImageUrl(data.food_image_url)) {
+      if (isUsableUploadedImageUrl(data.food_image_url)) {
         foodImage = data.food_image_url.trim();
       }
       if (data.food_pairings?.length && data.food_pairings.some((s) => String(s).trim())) {
@@ -84,11 +82,22 @@ export async function resolveResultAssets(
     }
   }
 
-  if (!drinkImage && isUsableImageUrl(catalog.cocktailImage)) {
+  if (!foodImage) {
+    const adminFood = await pickAdminFoodListing(tasteLane, recommendationId);
+    if (adminFood) {
+      foodImage = adminFood.foodImageUrl;
+      foodTitle = adminFood.foodName;
+      foodPairings = adminFood.foodPairings;
+    }
+  }
+
+  if (!drinkImage && isUsableUploadedImageUrl(catalog.cocktailImage)) {
     drinkImage = catalog.cocktailImage;
   }
-  if (!foodImage && isUsableImageUrl(catalog.foodImage)) {
-    foodImage = catalog.foodImage;
+
+  if (foodTitle === catalog.foodName && !foodImage) {
+    foodTitle = "Chef-selected pairing";
+    foodPairings = [foodTitle];
   }
 
   return {
@@ -99,6 +108,6 @@ export async function resolveResultAssets(
     foodImage,
     flavorNotes: payload?.flavorNotes ?? "Balanced emotional flavor profile",
     description: payload?.description ?? catalog.pairingLine,
-    tasteLane: payload?.tasteLane ?? null,
+    tasteLane,
   };
 }

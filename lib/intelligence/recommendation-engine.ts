@@ -1,5 +1,7 @@
 import "server-only";
 import { isAlcoholCategoryAllowedForMinor } from "@/lib/admin/alcohol-categories";
+import { pickAdminFoodListing } from "@/lib/admin/pick-food-listing";
+import { isUsableUploadedImageUrl } from "@/lib/images/uploaded-url";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { MoodArchetype } from "@/lib/intelligence/mood-archetypes";
 import type { EmotionalScores } from "@/lib/intelligence/scoring";
@@ -118,24 +120,35 @@ async function findAdminRecommendation(
   const primary = pickByTaste(pool, tasteLane) ?? pool[0];
   const alternatePool = pool.filter((r) => r.id !== primary.id);
 
-  const catalog = getRecommendation(mood.key);
-  const catalogFood = catalog?.foodName ?? null;
-
-  const foodPairings =
+  let foodPairings =
     primary.food_pairings?.length && primary.food_pairings.some((s) => String(s).trim())
       ? primary.food_pairings.filter((s) => String(s).trim())
-      : catalogFood
-        ? [catalogFood]
-        : ["Chef-selected pairing for tonight's mood"];
+      : [];
 
-  const foodNameRaw = typeof primary.food_name === "string" && primary.food_name.trim()
-    ? primary.food_name.trim()
-    : foodPairings[0] ?? null;
-
-  const foodImageUrl =
-    typeof primary.food_image_url === "string" && primary.food_image_url.trim()
-      ? primary.food_image_url.trim()
+  let foodNameRaw =
+    typeof primary.food_name === "string" && primary.food_name.trim()
+      ? primary.food_name.trim()
       : null;
+
+  let foodImageUrl = isUsableUploadedImageUrl(primary.food_image_url)
+    ? primary.food_image_url.trim()
+    : null;
+
+  if (!foodImageUrl) {
+    const adminFood = await pickAdminFoodListing(tasteLane, primary.id);
+    if (adminFood) {
+      foodImageUrl = adminFood.foodImageUrl;
+      foodNameRaw = adminFood.foodName;
+      foodPairings = adminFood.foodPairings;
+    }
+  }
+
+  if (!foodNameRaw) {
+    foodNameRaw = "Chef-selected pairing for tonight's mood";
+    foodPairings = [foodNameRaw];
+  } else if (!foodPairings.length) {
+    foodPairings = [foodNameRaw];
+  }
 
   return {
     source: "admin",
