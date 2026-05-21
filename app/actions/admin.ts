@@ -11,16 +11,40 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 const COCKTAIL_IMAGE_BUCKET = "cocktail-images";
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const PLACEHOLDER_CHECKOUT_URL = "https://example.com/checkout";
 
 const ALL_MOOD_KEYS = MOOD_ARCHETYPES.map((m) => m.key);
 
-/** Minimal admin payload: curated rows tagged for every mood so the engine can still serve them via priority_score. */
-const simpleCategory = z.string().refine((s): s is AlcoholCategory => (ALCOHOL_CATEGORIES as readonly string[]).includes(s));
+const simpleCategory = z
+  .string()
+  .trim()
+  .optional()
+  .transform((s) => (s && s.length > 0 ? s : "Other"))
+  .refine((s): s is AlcoholCategory => (ALCOHOL_CATEGORIES as readonly string[]).includes(s), {
+    message: "Invalid category",
+  });
 
-const SimpleRecommendationSchema = z.object({
-  cocktail_name: z.string().trim().min(2),
+const optionalName = z
+  .string()
+  .trim()
+  .optional()
+  .transform((s) => (s && s.length >= 2 ? s : undefined));
+
+const optionalUrl = z
+  .string()
+  .trim()
+  .optional()
+  .transform((s) => {
+    if (!s) return undefined;
+    const parsed = z.string().url().safeParse(s);
+    return parsed.success ? parsed.data : undefined;
+  });
+
+const FormFieldsSchema = z.object({
+  cocktail_name: optionalName,
   alcohol_category: simpleCategory,
-  square_checkout_url: z.string().trim().url(),
+  square_checkout_url: optionalUrl,
+  food_name: optionalName,
 });
 
 function flavorSlugFromCategory(category: string) {
@@ -38,7 +62,16 @@ function extFromMime(contentType: string) {
   return "jpg";
 }
 
-async function uploadRecommendationImage(file: File, storageSubdir: "recommendations" | "recommendations/food" = "recommendations"): Promise<string | null> {
+function fileFromFormData(formData: FormData, key: string): File | null {
+  const uploaded = formData.get(key);
+  if (!(uploaded instanceof File) || uploaded.size === 0) return null;
+  return uploaded;
+}
+
+async function uploadRecommendationImage(
+  file: File,
+  storageSubdir: "recommendations" | "recommendations/food" = "recommendations",
+): Promise<string | null> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     console.error("Invalid image type:", file.type);
     return null;
@@ -72,16 +105,14 @@ async function uploadRecommendationImage(file: File, storageSubdir: "recommendat
 export async function createRecommendation(formData: FormData) {
   await requireAdminUser();
 
-  const uploaded = formData.get("image_file");
-  if (!(uploaded instanceof File) || uploaded.size === 0) {
-    console.error("createRecommendation: image file required");
-    return;
-  }
+  const drinkImageFile = fileFromFormData(formData, "image_file");
+  const foodImageFile = fileFromFormData(formData, "food_image_file");
 
-  const parsed = SimpleRecommendationSchema.safeParse({
+  const parsed = FormFieldsSchema.safeParse({
     cocktail_name: formData.get("cocktail_name"),
     alcohol_category: formData.get("alcohol_category"),
     square_checkout_url: formData.get("square_checkout_url"),
+    food_name: formData.get("food_name"),
   });
 
   if (!parsed.success) {
@@ -89,35 +120,57 @@ export async function createRecommendation(formData: FormData) {
     return;
   }
 
-  const imageUrl = await uploadRecommendationImage(uploaded);
-  if (!imageUrl) return;
+  const { cocktail_name, alcohol_category, square_checkout_url, food_name } = parsed.data;
 
-  const foodNameRaw = String(formData.get("food_name") ?? "").trim();
-  const foodName = foodNameRaw.length >= 2 ? foodNameRaw : null;
+  const hasDrink = Boolean(cocktail_name || drinkImageFile);
+  const hasFood = Boolean(food_name || foodImageFile);
 
-  const foodUpload = formData.get("food_image_file");
+  if (!hasDrink && !hasFood) {
+    console.error("createRecommendation: add at least a drink or a food item");
+    return;
+  }
+
+  let imageUrl: string | null = null;
+  if (drinkImageFile) {
+    imageUrl = await uploadRecommendationImage(drinkImageFile);
+    if (!imageUrl) return;
+  }
+
   let foodImageUrl: string | null = null;
-  if (foodUpload instanceof File && foodUpload.size > 0) {
-    foodImageUrl = await uploadRecommendationImage(foodUpload, "recommendations/food");
+  if (foodImageFile) {
+    foodImageUrl = await uploadRecommendationImage(foodImageFile, "recommendations/food");
     if (!foodImageUrl) return;
   }
 
-  const slug = flavorSlugFromCategory(parsed.data.alcohol_category);
-  const description = `${parsed.data.cocktail_name} · ${parsed.data.alcohol_category} serve for Hidden Spirits checkout.`;
+  const resolvedFoodName = food_name ?? null;
+  const resolvedCocktailName =
+    cocktail_name ?? resolvedFoodName ?? (hasDrink ? "House cocktail" : "Food pairing");
+
+  const squareCheckoutUrl = square_checkout_url ?? PLACEHOLDER_CHECKOUT_URL;
+
+  const descriptionParts: string[] = [];
+  if (hasDrink) descriptionParts.push(resolvedCocktailName);
+  if (resolvedFoodName) descriptionParts.push(resolvedFoodName);
+  const description =
+    descriptionParts.length > 0
+      ? `${descriptionParts.join(" · ")} · ${alcohol_category} listing for Hidden Spirits checkout.`
+      : `${alcohol_category} listing for Hidden Spirits checkout.`;
+
+  const slug = flavorSlugFromCategory(alcohol_category);
 
   const sb = getSupabaseAdmin();
   const { error } = await sb.from("cocktail_recommendations").insert({
-    cocktail_name: parsed.data.cocktail_name,
-    alcohol_category: parsed.data.alcohol_category,
+    cocktail_name: resolvedCocktailName,
+    alcohol_category,
     mood_tags: [...ALL_MOOD_KEYS],
     flavor_profile: slug,
     emotional_tags: [],
     atmosphere_tags: [],
     description,
-    square_checkout_url: parsed.data.square_checkout_url,
+    square_checkout_url: squareCheckoutUrl,
     image_url: imageUrl,
-    food_pairings: foodName ? [foodName] : [],
-    food_name: foodName,
+    food_pairings: resolvedFoodName ? [resolvedFoodName] : [],
+    food_name: resolvedFoodName,
     food_image_url: foodImageUrl,
     priority_score: 85,
     active: true,
