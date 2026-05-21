@@ -71,7 +71,7 @@ export async function pickAdminFoodListing(
       : [foodName];
 
   return {
-    foodImageUrl: picked.food_image_url.trim(),
+    foodImageUrl: picked.food_image_url,
     foodName,
     foodPairings,
   };
