@@ -53,17 +53,12 @@ export default async function AdminPage({
           <h1 className="font-[family-name:var(--font-serif)] text-[clamp(1.65rem,5vw,2.25rem)] font-semibold leading-tight tracking-tight">
             HiddenSense Admin
           </h1>
-          <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
-            <Link
-              href="/dashboard"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2.5 text-sm hover:bg-white/[0.1]"
-            >
-              Back to dashboard
-            </Link>
-            <p className="max-w-[20rem] text-left text-[11px] leading-snug text-white/45 sm:text-right">
-              Same account session as the main app—opening Admin does not sign you out.
-            </p>
-          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2.5 text-sm hover:bg-white/[0.1]"
+          >
+            Back to dashboard
+          </Link>
         </div>
 
         <section className="mb-8 grid gap-4 md:grid-cols-4">
