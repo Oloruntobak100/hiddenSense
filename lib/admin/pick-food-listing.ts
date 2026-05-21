@@ -20,7 +20,9 @@ type Row = {
   cocktail_name: string | null;
 };
 
-function pickByTaste(rows: Row[], tasteLane: TasteLane | null): Row | undefined {
+type FoodRow = Row & { food_image_url: string };
+
+function pickByTaste(rows: FoodRow[], tasteLane: TasteLane | null): FoodRow | undefined {
   if (!tasteLane) return undefined;
   const keywords: Record<TasteLane, string[]> = {
     lemon: ["lemon", "citrus", "tangy", "crisp", "refresh"],
@@ -49,7 +51,7 @@ export async function pickAdminFoodListing(
 
   if (!data?.length) return null;
 
-  const pool: Array<Row & { food_image_url: string }> = [];
+  const pool: FoodRow[] = [];
   for (const row of data) {
     if (row.id === excludeRecommendationId) continue;
     if (!isUsableUploadedImageUrl(row.food_image_url)) continue;
