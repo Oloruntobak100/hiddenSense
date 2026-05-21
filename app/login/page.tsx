@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { LogoMark } from "@/components/brand/Logo";
 import { AuthTabs } from "@/components/auth/AuthTabs";
 import { TesterLoginForm } from "@/components/login/TesterLoginForm";
@@ -54,9 +55,9 @@ export default function LoginPage() {
         ) : null}
 
         <div className="mt-4 space-y-2 text-center text-xs">
-          <Link href="/logout" className="block text-white/55 underline-offset-4 hover:text-white hover:underline">
+          <SignOutButton className="block text-white/55 underline-offset-4 hover:text-white hover:underline">
             Sign out & clear session
-          </Link>
+          </SignOutButton>
           <Link href="/" className="block text-white/55 hover:text-white">
             Home
           </Link>

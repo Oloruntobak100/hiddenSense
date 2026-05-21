@@ -1,20 +1,15 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import {
-  DEMO_MODE_COOKIE,
-  DEMO_RESULT_COOKIE,
-  PROFILE_COOKIE,
-} from "@/lib/session/constants";
+import { performSignOut } from "@/lib/auth/sign-out";
 
-export async function GET(request: Request) {
-  const supabase = await createServerSupabaseClient();
-  await supabase.auth.signOut();
+/**
+ * GET must not sign out: Next.js prefetches <Link href="/logout"> in the viewport,
+ * which was destroying sessions when users opened the account menu or landed on login.
+ */
+export async function GET() {
+  return new NextResponse(null, { status: 405 });
+}
 
-  const jar = await cookies();
-  jar.delete(PROFILE_COOKIE);
-  jar.delete(DEMO_MODE_COOKIE);
-  jar.delete(DEMO_RESULT_COOKIE);
-
+export async function POST(request: Request) {
+  await performSignOut();
   return NextResponse.redirect(new URL("/", request.url));
 }

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminEmail } from "@/lib/auth/admin-allowlist";
+import { getSafeInternalNext } from "@/lib/auth/safe-next";
 import { PROFILE_COOKIE } from "@/lib/session/constants";
 import { isUuid } from "@/lib/session/uuid";
 import { supabaseAuthCookieOptions } from "@/lib/supabase/auth-cookie-options";
@@ -79,6 +80,14 @@ export async function middleware(request: NextRequest) {
       pathname === "/profile" ||
       pathname === "/my-results" ||
       pathname.startsWith("/feedback/"));
+
+  if (pathname === "/login" && user) {
+    const nextRaw = request.nextUrl.searchParams.get("next");
+    const dest = getSafeInternalNext(nextRaw, "/dashboard");
+    const redirect = NextResponse.redirect(new URL(dest, request.url));
+    copySupabaseCookiesAndCacheHeaders(response, redirect);
+    return redirect;
+  }
 
   if (needsAuth && !user && !allowTesterCookieBypass(request)) {
     const login = new URL("/login", request.url);

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { MyResultsModal } from "@/components/results/MyResultsModal";
 import type { MyResultItem } from "@/lib/data/my-results";
 
@@ -68,6 +69,7 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
               <p className="px-3 pb-2 pt-1 text-sm text-white/85">Welcome back, {displayName}!</p>
               <Link
                 href="/profile"
+                prefetch={false}
                 onClick={() => setOpen(false)}
                 className="block rounded-xl px-3 py-2 text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
               >
@@ -96,13 +98,9 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
                   Admin Dashboard
                 </Link>
               ) : null}
-              <Link
-                href="/logout"
-                onClick={() => setOpen(false)}
-                className="block rounded-xl px-3 py-2 text-sm text-red-200 transition hover:bg-red-500/15 hover:text-red-100"
-              >
-                Log out
-              </Link>
+              <SignOutButton
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm text-red-200 transition hover:bg-red-500/15 hover:text-red-100"
+              />
             </div>
           ) : null}
         </div>
@@ -150,6 +148,7 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
         >
           <Link
             href="/quiz"
+            prefetch={false}
             className="inline-flex w-full max-w-sm min-[420px]:w-auto min-h-[3.25rem] items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] via-[#7b46ff] to-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_38px_-16px_rgba(124,58,237,0.75)] transition duration-300 hover:brightness-110 hover:shadow-[0_22px_46px_-16px_rgba(124,58,237,0.82)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:min-h-12 sm:max-w-none sm:px-9"
           >
             Find My Mood

@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getCurrentProfileId } from "@/lib/auth/current-profile";
+import { notFound, redirect } from "next/navigation";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { ensureProfileId } from "@/lib/auth/ensure-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const profileId = await getCurrentProfileId();
-  if (!profileId) notFound();
+  const profileId = await ensureProfileId();
+  if (!profileId) redirect("/dashboard");
 
   const admin = getSupabaseAdmin();
   const { data } = await admin
@@ -39,16 +40,12 @@ export default async function ProfilePage() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/dashboard"
+            prefetch={false}
             className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-white/90 transition hover:bg-white/[0.1]"
           >
             Back to Intro
           </Link>
-          <Link
-            href="/logout"
-            className="inline-flex items-center justify-center rounded-xl border border-red-300/25 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-100 transition hover:bg-red-500/20"
-          >
-            Log out
-          </Link>
+          <SignOutButton className="inline-flex items-center justify-center rounded-xl border border-red-300/25 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-100 transition hover:bg-red-500/20" />
         </div>
       </div>
     </main>
