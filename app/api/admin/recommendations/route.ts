@@ -1,4 +1,3 @@
-import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { processCreateListing } from "@/lib/admin/create-listing";
 import { getAdminUser } from "@/lib/auth/admin";
@@ -31,6 +30,7 @@ export async function POST(request: Request) {
     );
   }
 
-  revalidatePath("/admin");
-  return NextResponse.redirect(new URL("/admin?saved=1", site));
+  const redirect = NextResponse.redirect(new URL("/admin?saved=1", site), 303);
+  redirect.headers.set("Cache-Control", "no-store");
+  return redirect;
 }

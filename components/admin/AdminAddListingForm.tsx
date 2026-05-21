@@ -1,20 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { ALCOHOL_CATEGORIES } from "@/lib/admin/alcohol-categories";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
-export function AdminAddListingForm() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const saved = searchParams.get("saved") === "1";
+type AdminAddListingFormProps = {
+  saved?: boolean;
+  error?: string | null;
+};
 
-  const formKey = useMemo(
-    () => (saved ? `saved-${Date.now()}` : error ? `err-${error.slice(0, 24)}` : "default"),
-    [saved, error],
-  );
-
+export function AdminAddListingForm({ saved = false, error = null }: AdminAddListingFormProps) {
   return (
     <div>
       {saved ? (
@@ -35,7 +29,7 @@ export function AdminAddListingForm() {
       ) : null}
 
       <form
-        key={formKey}
+        key={saved ? "after-save" : error ? "after-error" : "default"}
         action="/api/admin/recommendations"
         method="POST"
         encType="multipart/form-data"

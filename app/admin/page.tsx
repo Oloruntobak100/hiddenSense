@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import { deleteRecommendation, toggleRecommendationActive } from "@/app/actions/admin";
+import {
+  deleteRecommendationForm,
+  toggleRecommendationActiveForm,
+} from "@/app/actions/admin";
 import { AdminAddListingForm } from "@/components/admin/AdminAddListingForm";
 import { requireAdminUser } from "@/lib/auth/admin";
 import { MOOD_ARCHETYPES } from "@/lib/intelligence/mood-archetypes";
@@ -10,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 const ALL_MOOD_KEY_SET = new Set(MOOD_ARCHETYPES.map((m) => m.key));
 
-function isUniversalMoodTags(tags: string[]) {
+function isUniversalMoodTags(tags: string[] | null | undefined) {
+  if (!Array.isArray(tags) || tags.length === 0) return false;
   const unique = new Set(tags);
   if (unique.size !== ALL_MOOD_KEY_SET.size) return false;
   for (const k of ALL_MOOD_KEY_SET) {
@@ -19,16 +22,29 @@ function isUniversalMoodTags(tags: string[]) {
   return true;
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
   await requireAdminUser();
+  const qs = await searchParams;
+  const formSaved = qs.saved === "1";
+  const formError = typeof qs.error === "string" && qs.error.trim() ? qs.error.trim() : null;
+
   const sb = getSupabaseAdmin();
 
-  const [{ data: recs }, { data: moodStats }, { data: feedbackStats }, { count: clicksCount }] = await Promise.all([
+  const [recsRes, moodRes, feedbackRes, clicksRes] = await Promise.all([
     sb.from("cocktail_recommendations").select("*").order("priority_score", { ascending: false }),
     sb.from("mood_results").select("mood_key, confidence_score"),
     sb.from("feedback_responses").select("response"),
     sb.from("recommendation_clicks").select("*", { count: "exact", head: true }),
   ]);
+
+  const recs = recsRes.data ?? [];
+  const moodStats = moodRes.data ?? [];
+  const feedbackStats = feedbackRes.data ?? [];
+  const clicksCount = clicksRes.count ?? 0;
 
   return (
     <main className="min-h-[100dvh] bg-[linear-gradient(160deg,#09080f_15%,#151024_46%,#1c131a_74%,#0c0a13_100%)] px-[max(1.25rem,env(safe-area-inset-left))] py-8 pb-[max(2rem,env(safe-area-inset-bottom))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2rem,env(safe-area-inset-top)+0.75rem)] text-white sm:px-8 sm:py-10">
@@ -51,15 +67,15 @@ export default async function AdminPage() {
         </div>
 
         <section className="mb-8 grid gap-4 md:grid-cols-4">
-          <MetricCard title="Mood Results" value={String(moodStats?.length ?? 0)} />
-          <MetricCard title="Recommendation Clicks" value={String(clicksCount ?? 0)} />
+          <MetricCard title="Mood Results" value={String(moodStats.length)} />
+          <MetricCard title="Recommendation Clicks" value={String(clicksCount)} />
           <MetricCard
             title="Feedback Accuracy"
-            value={`${Math.round(((feedbackStats?.filter((r) => r.response === "absolutely").length ?? 0) / Math.max(1, feedbackStats?.length ?? 0)) * 100)}%`}
+            value={`${Math.round((feedbackStats.filter((r) => r.response === "absolutely").length / Math.max(1, feedbackStats.length)) * 100)}%`}
           />
           <MetricCard
             title="Avg Confidence"
-            value={`${Math.round((moodStats?.reduce((a, r) => a + Number(r.confidence_score), 0) ?? 0) / Math.max(1, moodStats?.length ?? 0))}%`}
+            value={`${Math.round(moodStats.reduce((a, r) => a + Number(r.confidence_score), 0) / Math.max(1, moodStats.length))}%`}
           />
         </section>
 
@@ -71,15 +87,13 @@ export default async function AdminPage() {
               image, or a food name or food image. Images: JPEG / PNG / WebP / GIF, max 5 MB each. Listings apply across all
               moods.
             </p>
-            <Suspense fallback={<p className="text-sm text-white/60">Loading form…</p>}>
-              <AdminAddListingForm />
-            </Suspense>
+            <AdminAddListingForm saved={formSaved} error={formError} />
           </div>
 
           <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
             <h2 className="mb-4 text-lg font-semibold">Checkout library</h2>
             <div className="space-y-3">
-              {(recs ?? []).map((rec) => (
+              {recs.map((rec) => (
                 <div key={rec.id} className="rounded-2xl border border-white/12 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="mt-1 flex shrink-0 gap-2">
@@ -116,7 +130,7 @@ export default async function AdminPage() {
                       ) : null}
                       {isUniversalMoodTags(rec.mood_tags) ? (
                         <p className="mt-1 text-xs text-white/45">Eligible for · all moods</p>
-                      ) : rec.mood_tags.length > 0 ? (
+                      ) : Array.isArray(rec.mood_tags) && rec.mood_tags.length > 0 ? (
                         <p className="mt-1 text-xs text-white/45">Mood tags · {rec.mood_tags.join(", ")}</p>
                       ) : null}
                       {rec.square_checkout_url && rec.square_checkout_url !== "https://example.com/checkout" ? (
@@ -126,7 +140,9 @@ export default async function AdminPage() {
                       ) : null}
                     </div>
                     <div className="flex shrink-0 gap-2">
-                      <form action={async () => { "use server"; await toggleRecommendationActive(rec.id, !rec.active); }}>
+                      <form action={toggleRecommendationActiveForm}>
+                        <input type="hidden" name="id" value={rec.id} />
+                        <input type="hidden" name="active" value={rec.active ? "false" : "true"} />
                         <button
                           type="submit"
                           className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${rec.active ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"}`}
@@ -134,7 +150,8 @@ export default async function AdminPage() {
                           {rec.active ? "Active" : "Inactive"}
                         </button>
                       </form>
-                      <form action={async () => { "use server"; await deleteRecommendation(rec.id); }}>
+                      <form action={deleteRecommendationForm}>
+                        <input type="hidden" name="id" value={rec.id} />
                         <button type="submit" className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200">
                           Delete
                         </button>

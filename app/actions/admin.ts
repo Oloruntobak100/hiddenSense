@@ -20,6 +20,19 @@ export async function createRecommendation(
   return { saved: true };
 }
 
+export async function toggleRecommendationActiveForm(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const nextActive = formData.get("active") === "true";
+  if (!id) return;
+  await toggleRecommendationActive(id, nextActive);
+}
+
+export async function deleteRecommendationForm(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await deleteRecommendation(id);
+}
+
 export async function toggleRecommendationActive(id: string, nextActive: boolean) {
   await requireAdminUser();
   const sb = getSupabaseAdmin();
