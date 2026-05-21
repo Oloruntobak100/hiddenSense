@@ -1,5 +1,5 @@
 import "server-only";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthUser } from "@/lib/auth/server-user";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getProfileIdFromCookies } from "@/lib/session/cookies";
 import { isDemoSession } from "@/lib/session/demo";
@@ -7,10 +7,7 @@ import { isOfflineDemoEnabled } from "@/lib/features/tester-access";
 
 /** Authenticated Supabase user id, or null. */
 export async function getAuthUserId(): Promise<string | null> {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getServerAuthUser();
   return user?.id ?? null;
 }
 
@@ -19,10 +16,7 @@ export async function getAuthUserId(): Promise<string | null> {
  * falls back to dev tester cookie path when enabled.
  */
 export async function getCurrentProfileId(): Promise<string | null> {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getServerAuthUser();
 
   if (user) {
     const admin = getSupabaseAdmin();

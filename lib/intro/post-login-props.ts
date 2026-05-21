@@ -2,7 +2,7 @@ import "server-only";
 
 import { isAdminEmail } from "@/lib/auth/admin";
 import { getCurrentProfileId } from "@/lib/auth/current-profile";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthUser } from "@/lib/auth/server-user";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export type PostLoginIntroProps = {
@@ -13,10 +13,7 @@ export type PostLoginIntroProps = {
 export async function getPostLoginIntroProps(): Promise<PostLoginIntroProps> {
   let displayName = "there";
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getServerAuthUser();
   const isAdmin = isAdminEmail(user?.email);
 
   const profileId = await getCurrentProfileId();

@@ -7,9 +7,8 @@ import { getDemoResultPayload } from "@/lib/session/demo";
 import { getQuizSessionForProfile } from "@/lib/data/quiz-session";
 import { MOOD_FEELINGS } from "@/lib/catalog/moods";
 import { getRecommendation } from "@/lib/catalog/recommendations";
-import { getAuthUserId, getCurrentProfileId } from "@/lib/auth/current-profile";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { upsertProfileFromAuthUser } from "@/lib/profile/sync-from-user";
+import { ensureProfileId } from "@/lib/auth/ensure-profile";
+import { getAuthUserId } from "@/lib/auth/current-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { PurchaseCta } from "@/components/result/PurchaseCta";
 import { BackNavButton } from "@/components/navigation/BackNavButton";
@@ -118,23 +117,9 @@ export default async function ResultPage({
       mood_name: demo.mood_name,
     };
   } else {
-    profileId = await getCurrentProfileId();
+    profileId = await ensureProfileId();
     if (!profileId) {
-      const userId = await getAuthUserId();
-      if (!userId) {
-        redirect(`/login?next=${encodeURIComponent(resultPath)}`);
-      }
-      const supabase = await createServerSupabaseClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        await upsertProfileFromAuthUser(user);
-      }
-      profileId = await getCurrentProfileId();
-      if (!profileId) {
-        redirect("/dashboard");
-      }
+      redirect("/dashboard");
     }
 
     const dbRow = await getQuizSessionForProfile(sessionId);

@@ -51,6 +51,7 @@ export async function middleware(request: NextRequest) {
       },
       setAll(cookiesToSet, responseHeaders) {
         cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
           response.cookies.set(name, value, options);
         });
         if (responseHeaders) {
@@ -76,6 +77,7 @@ export async function middleware(request: NextRequest) {
       pathname === "/dashboard" ||
       pathname.startsWith("/dashboard/") ||
       pathname === "/profile" ||
+      pathname === "/my-results" ||
       pathname.startsWith("/feedback/"));
 
   if (needsAuth && !user && !allowTesterCookieBypass(request)) {
