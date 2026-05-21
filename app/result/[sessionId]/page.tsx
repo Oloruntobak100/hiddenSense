@@ -88,14 +88,19 @@ export default async function ResultPage({
   searchParams,
 }: {
   params: Promise<{ sessionId: string }>;
-  searchParams: Promise<{ moodResultId?: string }>;
+  searchParams: Promise<{ moodResultId?: string; returnTo?: string; fromHistory?: string }>;
 }) {
   const [{ sessionId }, qs] = await Promise.all([params, searchParams]);
 
+  const fromHistory = qs.fromHistory === "1";
   const returnQuery = new URLSearchParams();
   if (typeof qs.moodResultId === "string" && qs.moodResultId.trim()) {
     returnQuery.set("moodResultId", qs.moodResultId.trim());
   }
+  if (typeof qs.returnTo === "string" && qs.returnTo.trim()) {
+    returnQuery.set("returnTo", qs.returnTo.trim());
+  }
+  if (fromHistory) returnQuery.set("fromHistory", "1");
   const resultPath = `/result/${sessionId}${returnQuery.toString() ? `?${returnQuery}` : ""}`;
 
   type RowLite = {
@@ -188,7 +193,15 @@ export default async function ResultPage({
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
   const secondary = (moodResult?.recommendation_payload?.secondary ?? []).slice(0, 3);
 
-  const backFallback = (await getAuthUserId()) ? "/dashboard" : "/";
+  const backFallback = fromHistory
+    ? typeof qs.returnTo === "string" && qs.returnTo.trim()
+      ? qs.returnTo.trim()
+      : (await getAuthUserId())
+        ? "/dashboard?results=1"
+        : "/"
+    : (await getAuthUserId())
+      ? "/dashboard"
+      : "/";
 
   return (
     <main className="mx-auto min-h-[100dvh] max-w-6xl pb-[max(7rem,env(safe-area-inset-bottom)+4rem)] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2.5rem,env(safe-area-inset-top)+1.5rem)] sm:pb-28 sm:pl-8 sm:pr-8 sm:pt-14 lg:max-w-[72rem]">
@@ -196,12 +209,14 @@ export default async function ResultPage({
         <Suspense fallback={<div className="h-11 w-24 shrink-0 rounded-full bg-white/10" aria-hidden />}>
           <BackNavButton fallbackHref={backFallback} />
         </Suspense>
-        <Link
-          href="/quiz"
-          className="inline-flex min-h-11 items-center text-sm font-medium text-white/55 transition active:text-white hover:text-white"
-        >
-          ← Retake pairing
-        </Link>
+        {!fromHistory ? (
+          <Link
+            href="/quiz"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-white/55 transition active:text-white hover:text-white"
+          >
+            ← Retake pairing
+          </Link>
+        ) : null}
       </div>
 
       <article className="overflow-hidden rounded-2xl border border-white/12 bg-[linear-gradient(170deg,#0d0b14_14%,#171123_52%,#120f1b_100%)] shadow-2xl shadow-black/60 sm:rounded-[2rem]">

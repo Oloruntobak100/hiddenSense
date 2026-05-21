@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -14,6 +15,19 @@ type Props = {
   isAdmin: boolean;
   myResults?: MyResultItem[];
 };
+
+function OpenResultsFromQuery({ onOpen }: { onOpen: () => void }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("results") !== "1") return;
+    onOpen();
+    router.replace("/dashboard", { scroll: false });
+  }, [searchParams, router, onOpen]);
+
+  return null;
+}
 
 export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) {
   const [open, setOpen] = useState(false);
@@ -157,6 +171,10 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
           <p className="mt-3 text-xs tracking-wide text-white/58">Takes less than 60 seconds.</p>
         </motion.div>
       </motion.section>
+
+      <Suspense fallback={null}>
+        <OpenResultsFromQuery onOpen={() => setResultsOpen(true)} />
+      </Suspense>
 
       <MyResultsModal
         open={resultsOpen}

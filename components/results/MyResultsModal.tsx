@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { MyResultItem } from "@/lib/data/my-results";
+import { DASHBOARD_RESULTS_RETURN } from "@/components/results/MyResultsList";
 import { MyResultsTable } from "@/components/results/MyResultsTable";
 
 type MyResultsModalProps = {
@@ -61,7 +62,11 @@ export function MyResultsModal({ open, onClose, items, displayName }: MyResultsM
 
       <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto w-full max-w-6xl">
-          <MyResultsTable items={items} onItemClick={onClose} />
+          <MyResultsTable
+            items={items}
+            historyReturnTo={DASHBOARD_RESULTS_RETURN}
+            onItemClick={onClose}
+          />
         </div>
       </div>
     </div>

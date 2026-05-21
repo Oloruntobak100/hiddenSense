@@ -16,10 +16,17 @@ function formatWhen(iso: string) {
 type MyResultsTableProps = {
   items: MyResultItem[];
   emptyCtaHref?: string;
+  /** Where Back goes on the result reveal when opened from this table. */
+  historyReturnTo?: string;
   onItemClick?: () => void;
 };
 
-export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: MyResultsTableProps) {
+export function MyResultsTable({
+  items,
+  emptyCtaHref = "/quiz",
+  historyReturnTo,
+  onItemClick,
+}: MyResultsTableProps) {
   if (items.length === 0) {
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-white/12 bg-white/[0.03] px-6 py-16 text-center">
@@ -79,7 +86,7 @@ export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: M
                 </td>
                 <td className="px-4 py-4 text-right sm:px-5">
                   <ViewResultLink
-                    href={resultHref(item)}
+                    href={resultHref(item, historyReturnTo)}
                     onNavigate={onItemClick}
                     className="inline-flex min-h-9 items-center justify-center rounded-lg border border-indigo-400/35 bg-indigo-500/15 px-4 py-1.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/25"
                   />

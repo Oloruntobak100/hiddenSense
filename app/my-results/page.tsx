@@ -25,7 +25,7 @@ export default async function MyResultsPage() {
         </p>
 
         <div className="mt-8">
-          <MyResultsTable items={items} />
+          <MyResultsTable items={items} historyReturnTo="/my-results" />
         </div>
 
         <div className="mt-10">
