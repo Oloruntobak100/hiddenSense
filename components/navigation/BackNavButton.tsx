@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSafeInternalNext } from "@/lib/auth/safe-next";
+import { useNavigationLoading } from "@/components/navigation/NavigationLoadingProvider";
 
 type Props = {
   /** Used when `?returnTo=` is missing or not allowlisted. */
@@ -17,12 +18,16 @@ type Props = {
 export function BackNavButton({ fallbackHref, className, label = "← Back" }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { startNavigation } = useNavigationLoading();
   const target = getSafeInternalNext(searchParams.get("returnTo"), fallbackHref);
 
   return (
     <button
       type="button"
-      onClick={() => router.push(target)}
+      onClick={() => {
+        startNavigation(target, "Loading…");
+        router.push(target);
+      }}
       className={
         className ??
         "inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white/90 backdrop-blur-sm transition hover:border-white/35 hover:bg-white/[0.1] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)]"

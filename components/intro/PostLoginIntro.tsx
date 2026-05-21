@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { NavigatingLink } from "@/components/navigation/NavigatingLink";
 import { MyResultsModal } from "@/components/results/MyResultsModal";
 import type { MyResultItem } from "@/lib/data/my-results";
 
@@ -67,14 +68,14 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
           {open ? (
             <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-white/15 bg-[#151222]/95 p-2 shadow-2xl shadow-black/55 backdrop-blur-md">
               <p className="px-3 pb-2 pt-1 text-sm text-white/85">Welcome back, {displayName}!</p>
-              <Link
+              <NavigatingLink
                 href="/profile"
-                prefetch={false}
+                message="Loading your profile…"
                 onClick={() => setOpen(false)}
-                className="block rounded-xl px-3 py-2 text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
               >
                 Manage Profile
-              </Link>
+              </NavigatingLink>
               <button
                 type="button"
                 onClick={() => {
@@ -89,14 +90,14 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
                 ) : null}
               </button>
               {isAdmin ? (
-                <Link
+                <NavigatingLink
                   href="/admin"
-                  prefetch={false}
+                  message="Opening admin dashboard…"
                   onClick={() => setOpen(false)}
-                  className="block rounded-xl px-3 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/15 hover:text-indigo-100"
+                  className="block w-full rounded-xl px-3 py-2 text-left text-sm text-indigo-200 transition hover:bg-indigo-500/15 hover:text-indigo-100"
                 >
                   Admin Dashboard
-                </Link>
+                </NavigatingLink>
               ) : null}
               <SignOutButton
                 className="block w-full rounded-xl px-3 py-2 text-left text-sm text-red-200 transition hover:bg-red-500/15 hover:text-red-100"
@@ -146,13 +147,13 @@ export function PostLoginIntro({ displayName, isAdmin, myResults = [] }: Props) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.6 }}
         >
-          <Link
+          <NavigatingLink
             href="/quiz"
-            prefetch={false}
+            message="Starting your mood pairing…"
             className="inline-flex w-full max-w-sm min-[420px]:w-auto min-h-[3.25rem] items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--hs-accent-strong)] via-[#7b46ff] to-[var(--hs-accent)] px-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_18px_38px_-16px_rgba(124,58,237,0.75)] transition duration-300 hover:brightness-110 hover:shadow-[0_22px_46px_-16px_rgba(124,58,237,0.82)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--hs-accent)] sm:min-h-12 sm:max-w-none sm:px-9"
           >
             Find My Mood
-          </Link>
+          </NavigatingLink>
           <p className="mt-3 text-xs tracking-wide text-white/58">Takes less than 60 seconds.</p>
         </motion.div>
       </motion.section>

@@ -1,6 +1,7 @@
-import Link from "next/link";
 import type { MyResultItem } from "@/lib/data/my-results";
 import { resultHref } from "@/components/results/MyResultsList";
+import { ViewResultLink } from "@/components/results/ViewResultLink";
+import { NavigatingLink } from "@/components/navigation/NavigatingLink";
 
 function formatWhen(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -23,14 +24,14 @@ export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: M
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-white/12 bg-white/[0.03] px-6 py-16 text-center">
         <p className="text-sm text-white/80">You haven&apos;t completed a mood pairing yet.</p>
-        <Link
+        <NavigatingLink
           href={emptyCtaHref}
-          prefetch={false}
+          message="Starting your mood pairing…"
           onClick={onItemClick}
           className="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[var(--hs-accent-strong)] to-[var(--hs-accent)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_-10px_rgba(124,58,237,0.7)] transition hover:brightness-110"
         >
           Find My Mood
-        </Link>
+        </NavigatingLink>
       </div>
     );
   }
@@ -71,14 +72,11 @@ export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: M
                   {item.cocktailName ?? "—"}
                 </td>
                 <td className="px-4 py-4 text-right sm:px-5">
-                  <Link
+                  <ViewResultLink
                     href={resultHref(item)}
-                    prefetch={false}
-                    onClick={onItemClick}
+                    onNavigate={onItemClick}
                     className="inline-flex min-h-9 items-center justify-center rounded-lg border border-indigo-400/35 bg-indigo-500/15 px-4 py-1.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/25"
-                  >
-                    View
-                  </Link>
+                  />
                 </td>
               </tr>
             ))}

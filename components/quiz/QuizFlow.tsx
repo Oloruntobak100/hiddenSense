@@ -8,6 +8,7 @@ import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
 import { deriveTasteLane, type TasteAnswers, type TasteOption } from "@/lib/intelligence/taste-lane";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { LogoMark } from "@/components/brand/Logo";
+import { PageLoadingScreen } from "@/components/ui/PageLoadingScreen";
 import { EmbeddedAuthPanel } from "@/components/auth/EmbeddedAuthPanel";
 import { PENDING_QUIZ_STORAGE_KEY, type PendingQuizV1 } from "@/lib/quiz/pending-quiz";
 
@@ -456,6 +457,8 @@ export function QuizFlow() {
           </motion.section>
         )}
       </AnimatePresence>
+
+      {pending ? <PageLoadingScreen message="Revealing your mood…" /> : null}
 
       {signupOpen ? (
         <div

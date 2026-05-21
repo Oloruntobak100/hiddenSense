@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { NavigatingLink } from "@/components/navigation/NavigatingLink";
 import { ensureProfileId } from "@/lib/auth/ensure-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -38,13 +38,13 @@ export default async function ProfilePage() {
         </div>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
+          <NavigatingLink
             href="/dashboard"
-            prefetch={false}
+            message="Returning to your dashboard…"
             className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-white/90 transition hover:bg-white/[0.1]"
           >
             Back to Intro
-          </Link>
+          </NavigatingLink>
           <SignOutButton className="inline-flex items-center justify-center rounded-xl border border-red-300/25 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-100 transition hover:bg-red-500/20" />
         </div>
       </div>

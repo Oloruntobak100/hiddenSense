@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Orbitron, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { SessionRefresher } from "@/components/auth/SessionRefresher";
+import { NavigationLoadingProvider } from "@/components/navigation/NavigationLoadingProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,7 +57,7 @@ export default function RootLayout({
     >
       <body className="min-h-full touch-manipulation font-sans">
         <SessionRefresher />
-        {children}
+        <NavigationLoadingProvider>{children}</NavigationLoadingProvider>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ensureProfileId } from "@/lib/auth/ensure-profile";
+import { NavigatingLink } from "@/components/navigation/NavigatingLink";
 import { listMyResults } from "@/lib/data/my-results";
 import { MyResultsTable } from "@/components/results/MyResultsTable";
 
@@ -29,13 +29,13 @@ export default async function MyResultsPage() {
         </div>
 
         <div className="mt-10">
-          <Link
+          <NavigatingLink
             href="/dashboard"
-            prefetch={false}
+            message="Returning to your dashboard…"
             className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-white/90 transition hover:bg-white/[0.1]"
           >
             ← Back to dashboard
-          </Link>
+          </NavigatingLink>
         </div>
       </div>
     </main>
