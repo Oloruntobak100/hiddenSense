@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
@@ -10,8 +9,11 @@ import { getRecommendation } from "@/lib/catalog/recommendations";
 import { ensureProfileId } from "@/lib/auth/ensure-profile";
 import { getAuthUserId } from "@/lib/auth/current-profile";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { resolveResultAssets } from "@/lib/result/resolve-result-assets";
 import { PurchaseCta } from "@/components/result/PurchaseCta";
 import { BackNavButton } from "@/components/navigation/BackNavButton";
+import { ResultHeroImage } from "@/components/result/ResultHeroImage";
+import { ResultFoodSection } from "@/components/result/ResultFoodSection";
 
 export const dynamic = "force-dynamic";
 
@@ -157,23 +159,34 @@ export default async function ResultPage({
     squareCheckoutUrl = await resolveSquareCheckoutUrl(sb, moodResult);
   }
 
-  const p = moodResult?.recommendation_payload;
-  const resolvedCocktailName = p?.cocktailName ?? recommendation.cocktailName;
-  const payloadPairings = p?.foodPairings;
-  const resolvedFoodPairings =
-    Array.isArray(payloadPairings) && payloadPairings.some((x) => typeof x === "string" && x.trim())
-      ? payloadPairings.filter((x): x is string => typeof x === "string" && Boolean(x.trim()))
-      : [recommendation.foodName];
-  const resolvedDrinkImage = p?.imageUrl ?? recommendation.cocktailImage;
-  const resolvedFoodTitle =
-    (typeof p?.foodName === "string" && p.foodName.trim()) ? p.foodName.trim() : resolvedFoodPairings[0] ?? recommendation.foodName;
-  const resolvedFoodImage =
-    (typeof p?.foodImageUrl === "string" && p.foodImageUrl.trim()) ? p.foodImageUrl.trim() : recommendation.foodImage;
-  const resolvedFlavor = p?.flavorNotes ?? "Balanced emotional flavor profile";
-  const resolvedDescription = p?.description ?? recommendation.pairingLine;
-  const resolvedTasteLane = p?.tasteLane ?? null;
+  const assets =
+    sessionId === DEMO_SESSION_ID
+      ? {
+          cocktailName: recommendation.cocktailName,
+          foodTitle: recommendation.foodName,
+          foodPairings: [recommendation.foodName],
+          drinkImage: recommendation.cocktailImage,
+          foodImage: recommendation.foodImage,
+          flavorNotes: "Balanced emotional flavor profile",
+          description: recommendation.pairingLine,
+          tasteLane: null as "lemon" | "strawberry" | "apple" | null,
+        }
+      : await resolveResultAssets(
+          row.mood_key,
+          moodResult?.recommendation_payload,
+          moodResult?.recommendation_id ?? null,
+        );
+
+  const resolvedCocktailName = assets.cocktailName;
+  const resolvedFoodPairings = assets.foodPairings;
+  const resolvedFoodTitle = assets.foodTitle;
+  const resolvedDrinkImage = assets.drinkImage;
+  const resolvedFoodImage = assets.foodImage;
+  const resolvedFlavor = assets.flavorNotes;
+  const resolvedDescription = assets.description;
+  const resolvedTasteLane = assets.tasteLane;
   const reason = moodResult?.ai_reasoning ?? `Your emotional signature aligns with ${row.mood_name} tonight.`;
-  const secondary = (p?.secondary ?? []).slice(0, 3);
+  const secondary = (moodResult?.recommendation_payload?.secondary ?? []).slice(0, 3);
 
   const backFallback = (await getAuthUserId()) ? "/dashboard" : "/";
 
@@ -232,16 +245,13 @@ export default async function ResultPage({
 
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
             <section className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-3xl">
-              <div className="relative aspect-[16/10] w-full">
-                <Image
-                  src={resolvedDrinkImage}
-                  alt={resolvedCocktailName}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
+              {resolvedDrinkImage ? (
+                <ResultHeroImage src={resolvedDrinkImage} alt={resolvedCocktailName} priority />
+              ) : (
+                <div className="flex aspect-[16/10] w-full items-center justify-center bg-white/[0.02] text-sm text-white/50">
+                  No drink image for this listing
+                </div>
+              )}
               <div className="space-y-4 p-5 sm:p-6">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--hs-accent)]/90">
@@ -267,37 +277,11 @@ export default async function ResultPage({
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-3xl">
-              <div className="relative aspect-[16/10] w-full">
-                <Image
-                  src={resolvedFoodImage}
-                  alt={resolvedFoodTitle}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-5 sm:p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Food pairing</p>
-                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-xl font-semibold text-white sm:text-2xl">
-                  {resolvedFoodTitle}
-                </h2>
-                {resolvedFoodPairings.length > 1 ? (
-                  <ul className="mt-4 space-y-2 text-sm text-white/80">
-                    {resolvedFoodPairings.map((food) => (
-                      <li key={food} className="flex gap-2">
-                        <span className="text-[var(--hs-accent)]" aria-hidden>
-                          ·
-                        </span>
-                        <span>{food}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-3 text-sm text-white/70">Crafted to complement your mood and the serve above.</p>
-                )}
-              </div>
-            </section>
+            <ResultFoodSection
+              foodImage={resolvedFoodImage}
+              foodTitle={resolvedFoodTitle}
+              foodPairings={resolvedFoodPairings}
+            />
           </div>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">

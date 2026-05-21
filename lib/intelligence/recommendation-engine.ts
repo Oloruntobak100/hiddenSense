@@ -120,7 +120,6 @@ async function findAdminRecommendation(
 
   const catalog = getRecommendation(mood.key);
   const catalogFood = catalog?.foodName ?? null;
-  const catalogFoodImg = catalog?.foodImage ?? null;
 
   const foodPairings =
     primary.food_pairings?.length && primary.food_pairings.some((s) => String(s).trim())
@@ -136,7 +135,7 @@ async function findAdminRecommendation(
   const foodImageUrl =
     typeof primary.food_image_url === "string" && primary.food_image_url.trim()
       ? primary.food_image_url.trim()
-      : catalogFoodImg;
+      : null;
 
   return {
     source: "admin",
