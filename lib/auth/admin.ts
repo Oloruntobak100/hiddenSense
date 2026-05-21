@@ -6,7 +6,7 @@ import { isAdminEmail } from "@/lib/auth/admin-allowlist";
 
 export { isAdminEmail };
 
-export async function requireAdminUser(): Promise<User> {
+export async function getAdminUser(): Promise<User | null> {
   const supabase = await createServerSupabaseClient();
 
   const {
@@ -24,5 +24,11 @@ export async function requireAdminUser(): Promise<User> {
     return user;
   }
 
+  return null;
+}
+
+export async function requireAdminUser(): Promise<User> {
+  const user = await getAdminUser();
+  if (user) return user;
   redirect("/dashboard");
 }
