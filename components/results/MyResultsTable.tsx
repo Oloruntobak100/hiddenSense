@@ -39,7 +39,7 @@ export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: M
   return (
     <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.02]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[720px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-white/12 bg-white/[0.04]">
               <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50 sm:px-5">
@@ -49,7 +49,10 @@ export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: M
                 Mood
               </th>
               <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50 sm:px-5">
-                Pairing
+                Drink
+              </th>
+              <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50 sm:px-5">
+                Food
               </th>
               <th className="px-4 py-3.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50 sm:px-5">
                 Action
@@ -68,8 +71,11 @@ export function MyResultsTable({ items, emptyCtaHref = "/quiz", onItemClick }: M
                     {item.moodName}
                   </span>
                 </td>
-                <td className="max-w-[14rem] truncate px-4 py-4 text-white/75 sm:max-w-none sm:px-5">
-                  {item.cocktailName ?? "—"}
+                <td className="max-w-[10rem] truncate px-4 py-4 text-white/75 sm:max-w-[12rem] sm:px-5">
+                  {item.drinkName ?? "—"}
+                </td>
+                <td className="max-w-[10rem] truncate px-4 py-4 text-white/75 sm:max-w-[12rem] sm:px-5">
+                  {item.foodName ?? "—"}
                 </td>
                 <td className="px-4 py-4 text-right sm:px-5">
                   <ViewResultLink
