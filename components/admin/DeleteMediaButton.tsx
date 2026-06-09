@@ -30,7 +30,7 @@ export function DeleteMediaButton({ id }: { id: string }) {
       type="button"
       onClick={handleDelete}
       disabled={pending}
-      className="rounded-lg bg-red-500/20 px-2 py-1 text-[10px] font-semibold text-red-200 disabled:opacity-50"
+      className="inline-flex items-center rounded-md border border-red-500/20 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-200 hover:bg-red-500/15"
     >
       {pending ? "…" : "Delete"}
     </button>

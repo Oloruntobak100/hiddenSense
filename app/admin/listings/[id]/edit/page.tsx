@@ -21,8 +21,11 @@ export default async function EditListingPage({
     return (
       <main className="min-h-[100dvh] bg-[#09080f] px-6 py-10 text-white">
         <p>Listing not found.</p>
-        <Link href="/admin" className="mt-4 inline-block text-[var(--hs-accent)] underline-offset-2 hover:underline">
-          Back to admin
+        <Link
+          href="/admin?tab=catalog"
+          className="mt-4 inline-block text-[var(--hs-accent)] underline-offset-2 hover:underline"
+        >
+          Back to catalog
         </Link>
       </main>
     );
@@ -31,21 +34,22 @@ export default async function EditListingPage({
   const formError = typeof qs.error === "string" && qs.error.trim() ? qs.error.trim() : null;
 
   return (
-    <main className="min-h-[100dvh] bg-[linear-gradient(160deg,#09080f_15%,#151024_46%,#1c131a_74%,#0c0a13_100%)] px-[max(1.25rem,env(safe-area-inset-left))] py-8 pb-[max(2rem,env(safe-area-inset-bottom))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2rem,env(safe-area-inset-top)+0.75rem)] text-white sm:px-8 sm:py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <h1 className="font-[family-name:var(--font-serif)] text-2xl font-semibold">Edit listing</h1>
+    <main className="min-h-[100dvh] bg-[linear-gradient(160deg,#09080f_15%,#151024_46%,#1c131a_74%,#0c0a13_100%)] px-[max(1rem,env(safe-area-inset-left))] py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(1.5rem,env(safe-area-inset-top)+0.5rem)] text-white sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/40">Catalog</p>
+            <h1 className="mt-1 font-[family-name:var(--font-serif)] text-2xl font-semibold">{listing.cocktail_name}</h1>
+          </div>
           <Link
-            href="/admin"
-            className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2.5 text-sm hover:bg-white/[0.1]"
+            href="/admin?tab=catalog"
+            className="inline-flex min-h-10 items-center rounded-lg border border-white/15 bg-white/[0.03] px-4 py-2 text-sm text-white/80 hover:bg-white/[0.07]"
           >
-            Back to admin
+            Back to catalog
           </Link>
-        </div>
+        </header>
 
-        <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
-          <AdminEditListingForm listing={listing} error={formError} />
-        </div>
+        <AdminEditListingForm listing={listing} error={formError} />
       </div>
     </main>
   );

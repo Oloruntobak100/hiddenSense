@@ -34,5 +34,5 @@ export async function POST(
     );
   }
 
-  return NextResponse.redirect(new URL(`/admin?saved=1`, site), 303);
+  return NextResponse.redirect(new URL("/admin?tab=catalog&saved=1", site), 303);
 }

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     formData = await request.formData();
   } catch {
     return NextResponse.redirect(
-      new URL("/admin?error=Could+not+read+upload.+Try+a+smaller+image.", site),
+      new URL("/admin?tab=add&error=Could+not+read+upload.+Try+a+smaller+image.", site),
     );
   }
 
@@ -26,11 +26,11 @@ export async function POST(request: Request) {
 
   if (!result.ok) {
     return NextResponse.redirect(
-      new URL(`/admin?error=${encodeURIComponent(result.error)}`, site),
+      new URL(`/admin?tab=add&error=${encodeURIComponent(result.error)}`, site),
     );
   }
 
-  const redirect = NextResponse.redirect(new URL("/admin?saved=1", site), 303);
+  const redirect = NextResponse.redirect(new URL("/admin?tab=add&saved=1", site), 303);
   redirect.headers.set("Cache-Control", "no-store");
   return redirect;
 }
