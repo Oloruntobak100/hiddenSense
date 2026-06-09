@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ImagePicker, type MediaAssetItem } from "@/components/admin/ImagePicker";
+import { InlineMediaPicker, type MediaAssetItem } from "@/components/admin/ImagePicker";
 import { ALCOHOL_CATEGORIES } from "@/lib/admin/alcohol-categories";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
@@ -31,19 +31,17 @@ export function AdminEditListingForm({ listing, error = null }: AdminEditListing
   const [foodPreview, setFoodPreview] = useState(listing.food_image_url);
   const [clearDrink, setClearDrink] = useState(false);
   const [clearFood, setClearFood] = useState(false);
-  const [pickerTarget, setPickerTarget] = useState<"drink" | "food" | null>(null);
 
-  function handlePick(asset: MediaAssetItem) {
-    if (pickerTarget === "drink") {
-      setDrinkSlug(asset.slug);
-      setDrinkPreview(asset.public_url);
-      setClearDrink(false);
-    }
-    if (pickerTarget === "food") {
-      setFoodSlug(asset.slug);
-      setFoodPreview(asset.public_url);
-      setClearFood(false);
-    }
+  function handleDrinkPick(asset: MediaAssetItem) {
+    setDrinkSlug(asset.slug);
+    setDrinkPreview(asset.public_url);
+    setClearDrink(false);
+  }
+
+  function handleFoodPick(asset: MediaAssetItem) {
+    setFoodSlug(asset.slug);
+    setFoodPreview(asset.public_url);
+    setClearFood(false);
   }
 
   return (
@@ -140,23 +138,8 @@ export function AdminEditListingForm({ listing, error = null }: AdminEditListing
         </div>
 
         <div className="rounded-2xl border border-white/12 bg-black/20 p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-white/50">Drink image</p>
-          <div className="flex flex-wrap items-center gap-3">
-            {drinkPreview && !clearDrink ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={drinkPreview} alt="" className="h-20 w-20 rounded-xl object-cover" />
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] text-white/40">
-                None
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => setPickerTarget("drink")}
-              className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/15"
-            >
-              Choose from library
-            </button>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50">Drink image</p>
             <button
               type="button"
               onClick={() => {
@@ -164,33 +147,29 @@ export function AdminEditListingForm({ listing, error = null }: AdminEditListing
                 setDrinkSlug("");
                 setDrinkPreview(null);
               }}
-              className="rounded-lg bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-200"
+              className="rounded-lg bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-200"
             >
               Remove
             </button>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {drinkPreview && !clearDrink ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={drinkPreview} alt="" className="h-20 w-20 rounded-xl object-cover" />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] text-white/40">
+                None selected
+              </div>
+            )}
+          </div>
+          <InlineMediaPicker slot="drink" onSelect={handleDrinkPick} selectedSlug={drinkSlug || undefined} />
           <input type="hidden" name="drink_media_slug" value={drinkSlug} />
           <input type="hidden" name="clear_drink_image" value={clearDrink ? "true" : "false"} />
         </div>
 
         <div className="rounded-2xl border border-white/12 bg-black/20 p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-white/50">Food image</p>
-          <div className="flex flex-wrap items-center gap-3">
-            {foodPreview && !clearFood ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={foodPreview} alt="" className="h-20 w-20 rounded-xl object-cover" />
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] text-white/40">
-                None
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => setPickerTarget("food")}
-              className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/15"
-            >
-              Choose from library
-            </button>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50">Food image</p>
             <button
               type="button"
               onClick={() => {
@@ -198,11 +177,22 @@ export function AdminEditListingForm({ listing, error = null }: AdminEditListing
                 setFoodSlug("");
                 setFoodPreview(null);
               }}
-              className="rounded-lg bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-200"
+              className="rounded-lg bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-200"
             >
               Remove
             </button>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {foodPreview && !clearFood ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={foodPreview} alt="" className="h-20 w-20 rounded-xl object-cover" />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] text-white/40">
+                None selected
+              </div>
+            )}
+          </div>
+          <InlineMediaPicker slot="food" onSelect={handleFoodPick} selectedSlug={foodSlug || undefined} />
           <input type="hidden" name="food_media_slug" value={foodSlug} />
           <input type="hidden" name="clear_food_image" value={clearFood ? "true" : "false"} />
         </div>
@@ -222,14 +212,6 @@ export function AdminEditListingForm({ listing, error = null }: AdminEditListing
           </Link>
         </div>
       </form>
-
-      <ImagePicker
-        open={pickerTarget !== null}
-        onClose={() => setPickerTarget(null)}
-        onSelect={handlePick}
-        kind={pickerTarget === "drink" ? "drink" : pickerTarget === "food" ? "food" : undefined}
-        title={pickerTarget === "drink" ? "Choose drink image" : "Choose food image"}
-      />
     </>
   );
 }

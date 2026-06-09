@@ -47,6 +47,21 @@ export async function listMediaAssets(kind?: MediaKind): Promise<MediaAsset[]> {
   return (data ?? []) as MediaAsset[];
 }
 
+/** Drink/food pickers include general uploads so default library uploads are selectable. */
+export async function listMediaAssetsForPicker(slot: "drink" | "food"): Promise<MediaAsset[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("media_assets")
+    .select("*")
+    .in("kind", [slot, "general"])
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("listMediaAssetsForPicker:", error.message);
+    return [];
+  }
+  return (data ?? []) as MediaAsset[];
+}
+
 export async function getMediaAssetBySlug(slug: string): Promise<MediaAsset | null> {
   const normalized = slugifyMediaLabel(slug);
   const sb = getSupabaseAdmin();

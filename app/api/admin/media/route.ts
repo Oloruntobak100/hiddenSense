@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createMediaAssetFromFile, deleteMediaAsset, listMediaAssets, type MediaKind } from "@/lib/admin/media-assets";
+import { createMediaAssetFromFile, deleteMediaAsset, listMediaAssets, listMediaAssetsForPicker, type MediaKind } from "@/lib/admin/media-assets";
 import { filesFromFormData } from "@/lib/admin/upload-image";
 import { getAdminUser } from "@/lib/auth/admin";
 
@@ -12,13 +12,20 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
+  const slotParam = url.searchParams.get("slot");
   const kindParam = url.searchParams.get("kind");
-  const kind =
-    kindParam === "drink" || kindParam === "food" || kindParam === "general"
-      ? (kindParam as MediaKind)
-      : undefined;
 
-  const assets = await listMediaAssets(kind);
+  let assets;
+  if (slotParam === "drink" || slotParam === "food") {
+    assets = await listMediaAssetsForPicker(slotParam);
+  } else {
+    const kind =
+      kindParam === "drink" || kindParam === "food" || kindParam === "general"
+        ? (kindParam as MediaKind)
+        : undefined;
+    assets = await listMediaAssets(kind);
+  }
+
   return NextResponse.json({ assets });
 }
 
