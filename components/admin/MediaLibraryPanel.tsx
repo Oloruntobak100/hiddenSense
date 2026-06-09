@@ -56,9 +56,7 @@ export function MediaLibraryPanel() {
     <div>
       <h2 className="mb-2 text-lg font-semibold">Media library</h2>
       <p className="mb-4 text-xs leading-relaxed text-white/48">
-        Upload drink and food images here first. Link them to listings when editing, or reference slugs in CSV bulk
-        import (<code className="text-white/70">drink_image_slug</code>,{" "}
-        <code className="text-white/70">food_image_slug</code>). JPEG / PNG / WebP / GIF, max 5 MB each.
+        Upload drink and food images here first, then attach them when editing each listing. JPEG / PNG / WebP / GIF, max 5 MB each.
       </p>
 
       {message ? (

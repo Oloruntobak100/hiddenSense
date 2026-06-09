@@ -240,6 +240,6 @@ export async function processBulkImportCsv(
   };
 }
 
-export const BULK_IMPORT_CSV_TEMPLATE = `drink_name,food_name,alcohol_category,description,square_checkout_url,priority_score,active,mood_tags,flavor_profile,drink_image_slug,food_image_slug
-Evening Spritz,Citrus crudo,RTD Cocktail,,https://example.com/checkout,85,true,unwind|celebrate,citrus-bright,evening-spritz-drink,evening-spritz-food
+export const BULK_IMPORT_CSV_TEMPLATE = `drink_name,food_name,alcohol_category,description,square_checkout_url,priority_score,active
+Evening Spritz,Citrus crudo,RTD Cocktail,,https://example.com/checkout,85,true
 `;
