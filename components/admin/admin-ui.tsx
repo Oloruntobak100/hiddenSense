@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { buildAdminHref } from "@/lib/admin/admin-urls";
 import type { AdminTab } from "@/lib/admin/listing-filters";
 import { ADMIN_TABS } from "@/lib/admin/listing-filters";
 
@@ -31,13 +32,7 @@ export function AdminPanel({
   );
 }
 
-export function AdminTabNav({
-  activeTab,
-  buildHref,
-}: {
-  activeTab: AdminTab;
-  buildHref: (tab: AdminTab) => string;
-}) {
+export function AdminTabNav({ activeTab }: { activeTab: AdminTab }) {
   return (
     <nav
       className="flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-black/25 p-1"
@@ -48,7 +43,7 @@ export function AdminTabNav({
         return (
           <Link
             key={tab.id}
-            href={buildHref(tab.id)}
+            href={buildAdminHref(tab.id)}
             className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition sm:px-4 ${
               active
                 ? "bg-[var(--hs-accent)] text-white shadow-sm"

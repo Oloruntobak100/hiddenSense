@@ -7,7 +7,6 @@ import {
   listingMissingFoodImage,
   parseAdminTab,
   parseListingFilter,
-  type AdminTab,
   type CatalogListing,
 } from "@/lib/admin/listing-filters";
 import { AdminAddListingForm } from "@/components/admin/AdminAddListingForm";
@@ -18,19 +17,6 @@ import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminTabNav } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
-
-function buildAdminHref(tab: AdminTab, filter?: string, extra?: Record<string, string>) {
-  const params = new URLSearchParams();
-  if (tab !== "catalog") params.set("tab", tab);
-  if (filter && filter !== "all") params.set("filter", filter);
-  if (extra) {
-    for (const [key, value] of Object.entries(extra)) {
-      if (value) params.set(key, value);
-    }
-  }
-  const qs = params.toString();
-  return qs ? `/admin?${qs}` : "/admin";
-}
 
 export default async function AdminPage({
   searchParams,
@@ -86,7 +72,7 @@ export default async function AdminPage({
         </header>
 
         <div className="mb-6">
-          <AdminTabNav activeTab={tab} buildHref={(nextTab) => buildAdminHref(nextTab)} />
+          <AdminTabNav activeTab={tab} />
         </div>
 
         <div className="space-y-4">
@@ -99,7 +85,6 @@ export default async function AdminPage({
                 missingDrink: missingDrinkCount,
                 missingFood: missingFoodCount,
               }}
-              buildHref={buildAdminHref}
             />
           ) : null}
 
