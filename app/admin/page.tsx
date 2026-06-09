@@ -4,13 +4,19 @@ import {
   toggleRecommendationActiveForm,
 } from "@/app/actions/admin";
 import { AdminAddListingForm } from "@/components/admin/AdminAddListingForm";
+import { AdminBulkImportPanel } from "@/components/admin/AdminBulkImportPanel";
+import { AdminMediaGrid } from "@/components/admin/AdminMediaGrid";
+import { MediaLibraryPanel } from "@/components/admin/MediaLibraryPanel";
 import { requireAdminUser } from "@/lib/auth/admin";
+import { isUsableUploadedImageUrl } from "@/lib/images/uploaded-url";
 import { MOOD_ARCHETYPES } from "@/lib/intelligence/mood-archetypes";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 const ALL_MOOD_KEY_SET = new Set(MOOD_ARCHETYPES.map((m) => m.key));
+
+type ListingFilter = "all" | "missing-drink" | "missing-food" | "missing-any";
 
 function isUniversalMoodTags(tags: string[] | null | undefined) {
   if (!Array.isArray(tags) || tags.length === 0) return false;
@@ -22,28 +28,68 @@ function isUniversalMoodTags(tags: string[] | null | undefined) {
   return true;
 }
 
+function listingMissingDrinkImage(imageUrl: string | null | undefined) {
+  return !isUsableUploadedImageUrl(imageUrl);
+}
+
+function listingMissingFoodImage(foodName: string | null | undefined, foodImageUrl: string | null | undefined) {
+  if (!foodName?.trim()) return false;
+  return !isUsableUploadedImageUrl(foodImageUrl);
+}
+
+function filterListings<
+  T extends {
+    image_url: string | null;
+    food_name: string | null;
+    food_image_url: string | null;
+  },
+>(recs: T[], filter: ListingFilter): T[] {
+  if (filter === "all") return recs;
+  if (filter === "missing-drink") {
+    return recs.filter((rec) => listingMissingDrinkImage(rec.image_url));
+  }
+  if (filter === "missing-food") {
+    return recs.filter((rec) => listingMissingFoodImage(rec.food_name, rec.food_image_url));
+  }
+  return recs.filter(
+    (rec) =>
+      listingMissingDrinkImage(rec.image_url) ||
+      listingMissingFoodImage(rec.food_name, rec.food_image_url),
+  );
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; filter?: string }>;
 }) {
   await requireAdminUser();
   const qs = await searchParams;
   const formSaved = qs.saved === "1";
   const formError = typeof qs.error === "string" && qs.error.trim() ? qs.error.trim() : null;
+  const filterParam = qs.filter;
+  const filter: ListingFilter =
+    filterParam === "missing-drink" ||
+    filterParam === "missing-food" ||
+    filterParam === "missing-any"
+      ? filterParam
+      : "all";
 
   const sb = getSupabaseAdmin();
 
-  const [recsRes, moodRes, feedbackRes, clicksRes] = await Promise.all([
+  const [recsRes, moodRes, clicksRes] = await Promise.all([
     sb.from("cocktail_recommendations").select("*").order("priority_score", { ascending: false }),
     sb.from("mood_results").select("mood_key, confidence_score"),
-    sb.from("feedback_responses").select("response"),
     sb.from("recommendation_clicks").select("*", { count: "exact", head: true }),
   ]);
 
-  const recs = recsRes.data ?? [];
+  const allRecs = recsRes.data ?? [];
+  const recs = filterListings(allRecs, filter);
+  const missingDrinkCount = allRecs.filter((rec) => listingMissingDrinkImage(rec.image_url)).length;
+  const missingFoodCount = allRecs.filter((rec) =>
+    listingMissingFoodImage(rec.food_name, rec.food_image_url),
+  ).length;
   const moodStats = moodRes.data ?? [];
-  const feedbackStats = feedbackRes.data ?? [];
   const clicksCount = clicksRes.count ?? 0;
 
   return (
@@ -65,29 +111,65 @@ export default async function AdminPage({
           <MetricCard title="Mood Results" value={String(moodStats.length)} />
           <MetricCard title="Recommendation Clicks" value={String(clicksCount)} />
           <MetricCard
-            title="Feedback Accuracy"
-            value={`${Math.round((feedbackStats.filter((r) => r.response === "absolutely").length / Math.max(1, feedbackStats.length)) * 100)}%`}
+            title="Missing drink images"
+            value={String(missingDrinkCount)}
+            href={missingDrinkCount > 0 ? "/admin?filter=missing-drink" : undefined}
           />
           <MetricCard
-            title="Avg Confidence"
-            value={`${Math.round(moodStats.reduce((a, r) => a + Number(r.confidence_score), 0) / Math.max(1, moodStats.length))}%`}
+            title="Missing food images"
+            value={String(missingFoodCount)}
+            href={missingFoodCount > 0 ? "/admin?filter=missing-food" : undefined}
           />
+        </section>
+
+        <section className="mb-8 grid gap-8 lg:grid-cols-2">
+          <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
+            <MediaLibraryPanel />
+            <AdminMediaGrid />
+          </div>
+
+          <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
+            <AdminBulkImportPanel />
+          </div>
         </section>
 
         <section className="grid gap-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
           <div className="h-fit rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
             <h2 className="mb-2 text-lg font-semibold">Add checkout listing</h2>
             <p className="mb-6 text-xs leading-relaxed text-white/48">
-              Add a drink, a food item, or both—no field is required on its own. Include at least a drink name or drink
-              image, or a food name or food image. Images: JPEG / PNG / WebP / GIF, max 5 MB each. Listings apply across all
-              moods.
+              Quick add for a single listing. For bulk catalog work, use the media library + CSV import, then edit
+              listings to attach images.
             </p>
             <AdminAddListingForm saved={formSaved} error={formError} />
           </div>
 
           <div className="rounded-3xl border border-white/12 bg-white/[0.03] p-6 shadow-xl shadow-black/30">
-            <h2 className="mb-4 text-lg font-semibold">Checkout library</h2>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-semibold">Checkout library</h2>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <FilterLink href="/admin" active={filter === "all"} label="All" />
+                <FilterLink
+                  href="/admin?filter=missing-drink"
+                  active={filter === "missing-drink"}
+                  label="Missing drink"
+                />
+                <FilterLink
+                  href="/admin?filter=missing-food"
+                  active={filter === "missing-food"}
+                  label="Missing food"
+                />
+                <FilterLink
+                  href="/admin?filter=missing-any"
+                  active={filter === "missing-any"}
+                  label="Missing any"
+                />
+              </div>
+            </div>
+
             <div className="space-y-3">
+              {recs.length === 0 ? (
+                <p className="text-sm text-white/50">No listings match this filter.</p>
+              ) : null}
               {recs.map((rec) => (
                 <div key={rec.id} className="rounded-2xl border border-white/12 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-4">
@@ -102,7 +184,7 @@ export default async function AdminPage({
                           height={64}
                         />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.03] text-[10px] text-white/40">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-amber-400/35 bg-amber-500/10 text-[10px] text-amber-100/80">
                           No drink
                         </div>
                       )}
@@ -115,6 +197,10 @@ export default async function AdminPage({
                           width={64}
                           height={64}
                         />
+                      ) : rec.food_name ? (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-amber-400/35 bg-amber-500/10 text-[10px] text-amber-100/80">
+                          No food
+                        </div>
                       ) : null}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -134,20 +220,29 @@ export default async function AdminPage({
                         </p>
                       ) : null}
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                      <Link
+                        href={`/admin/listings/${rec.id}/edit`}
+                        className="rounded-lg bg-white/10 px-3 py-1.5 text-center text-xs font-semibold hover:bg-white/15"
+                      >
+                        Edit
+                      </Link>
                       <form action={toggleRecommendationActiveForm}>
                         <input type="hidden" name="id" value={rec.id} />
                         <input type="hidden" name="active" value={rec.active ? "false" : "true"} />
                         <button
                           type="submit"
-                          className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${rec.active ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"}`}
+                          className={`w-full rounded-lg px-3 py-1.5 text-xs font-semibold ${rec.active ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70"}`}
                         >
                           {rec.active ? "Active" : "Inactive"}
                         </button>
                       </form>
                       <form action={deleteRecommendationForm}>
                         <input type="hidden" name="id" value={rec.id} />
-                        <button type="submit" className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200">
+                        <button
+                          type="submit"
+                          className="w-full rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-200"
+                        >
                           Delete
                         </button>
                       </form>
@@ -163,11 +258,37 @@ export default async function AdminPage({
   );
 }
 
-function MetricCard({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/12 bg-white/[0.03] p-4">
+function MetricCard({ title, value, href }: { title: string; value: string; href?: string }) {
+  const inner = (
+    <>
       <p className="text-xs uppercase tracking-[0.15em] text-white/55">{title}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="rounded-2xl border border-white/12 bg-white/[0.03] p-4 transition hover:border-[var(--hs-accent)]/40 hover:bg-white/[0.05]"
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return <div className="rounded-2xl border border-white/12 bg-white/[0.03] p-4">{inner}</div>;
+}
+
+function FilterLink({ href, active, label }: { href: string; active: boolean; label: string }) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-lg px-3 py-1.5 font-semibold ${
+        active ? "bg-[var(--hs-accent)]/25 text-white" : "bg-white/10 text-white/70 hover:bg-white/15"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }

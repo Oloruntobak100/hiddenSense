@@ -251,6 +251,28 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["feedback"]["Insert"]>;
         Relationships: [];
       };
+      media_assets: {
+        Row: {
+          id: string;
+          label: string;
+          slug: string;
+          public_url: string;
+          storage_path: string;
+          kind: "drink" | "food" | "general";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          label: string;
+          slug: string;
+          public_url: string;
+          storage_path: string;
+          kind?: "drink" | "food" | "general";
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["media_assets"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
