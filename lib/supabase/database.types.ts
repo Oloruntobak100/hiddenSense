@@ -313,6 +313,20 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["catalog_policy_config"]["Insert"]>;
         Relationships: [];
       };
+      quiz_content_config: {
+        Row: {
+          id: number;
+          content: Json;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          content: Json;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["quiz_content_config"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

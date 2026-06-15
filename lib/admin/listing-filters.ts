@@ -48,7 +48,7 @@ export const LISTING_FILTER_OPTIONS: { value: ListingFilter; label: string }[] =
   { value: "inactive", label: "Inactive only" },
 ];
 
-export type AdminTab = "overview" | "catalog" | "media" | "import" | "add" | "ai" | "policies";
+export type AdminTab = "overview" | "catalog" | "media" | "import" | "add" | "ai" | "policies" | "quiz";
 
 export const ADMIN_TABS: { id: AdminTab; label: string; description: string }[] = [
   { id: "overview", label: "Overview", description: "Summary and shortcuts" },
@@ -56,6 +56,7 @@ export const ADMIN_TABS: { id: AdminTab; label: string; description: string }[] 
   { id: "media", label: "Media", description: "Image library" },
   { id: "import", label: "Import", description: "Bulk CSV upload" },
   { id: "add", label: "Add one", description: "Single listing form" },
+  { id: "quiz", label: "Quiz", description: "Questions and responses" },
   { id: "ai", label: "AI agent", description: "Recommendation prompt & settings" },
   { id: "policies", label: "Policies", description: "Minor catalog & pairing rules" },
 ];
@@ -67,6 +68,7 @@ export function parseAdminTab(raw: string | undefined): AdminTab {
     raw === "media" ||
     raw === "import" ||
     raw === "add" ||
+    raw === "quiz" ||
     raw === "ai" ||
     raw === "policies"
   ) {

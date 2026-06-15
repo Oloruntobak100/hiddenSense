@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdminUser } from "@/lib/auth/admin";
 import { getCatalogPolicyConfig } from "@/lib/admin/catalog-policy";
+import { getQuizContentConfig } from "@/lib/quiz/quiz-content";
 import { getAiAgentConfig, getOpenAiApiKey } from "@/lib/intelligence/ai-agent-config";
 import { listMediaAssets } from "@/lib/admin/media-assets";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
@@ -12,6 +13,7 @@ import {
   type CatalogListing,
 } from "@/lib/admin/listing-filters";
 import { AdminCatalogPolicyPanel } from "@/components/admin/AdminCatalogPolicyPanel";
+import { AdminQuizContentPanel } from "@/components/admin/AdminQuizContentPanel";
 import { AdminAiSettingsPanel } from "@/components/admin/AdminAiSettingsPanel";
 import { AdminAddListingForm } from "@/components/admin/AdminAddListingForm";
 import { AdminBulkImportPanel } from "@/components/admin/AdminBulkImportPanel";
@@ -36,13 +38,14 @@ export default async function AdminPage({
 
   const sb = getSupabaseAdmin();
 
-  const [recsRes, moodRes, clicksRes, mediaAssets, aiConfig, catalogPolicy] = await Promise.all([
+  const [recsRes, moodRes, clicksRes, mediaAssets, aiConfig, catalogPolicy, quizContent] = await Promise.all([
     sb.from("cocktail_recommendations").select("*").order("priority_score", { ascending: false }),
     sb.from("mood_results").select("mood_key, confidence_score"),
     sb.from("recommendation_clicks").select("*", { count: "exact", head: true }),
     listMediaAssets(),
     getAiAgentConfig(),
     getCatalogPolicyConfig(),
+    getQuizContentConfig(),
   ]);
 
   const allRecs = (recsRes.data ?? []) as CatalogListing[];
@@ -57,6 +60,7 @@ export default async function AdminPage({
     media: "Media library",
     import: "Bulk import",
     add: "Add listing",
+    quiz: "Quiz content",
     ai: "AI agent",
     policies: "Policies",
   }[tab];
@@ -114,6 +118,8 @@ export default async function AdminPage({
           {tab === "import" ? <AdminBulkImportPanel /> : null}
 
           {tab === "add" ? <AdminAddListingForm saved={formSaved} error={formError} /> : null}
+
+          {tab === "quiz" ? <AdminQuizContentPanel initial={quizContent} /> : null}
 
           {tab === "ai" ? (
             <AdminAiSettingsPanel initial={aiConfig} openAiConfigured={getOpenAiApiKey() !== null} />

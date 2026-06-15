@@ -1,117 +1,22 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { submitQuiz } from "@/app/actions/quiz";
-import type { AnswerLetter, QuizAnswers } from "@/lib/mood/types";
 import { deriveTasteLane, type TasteAnswers, type TasteOption } from "@/lib/intelligence/taste-lane";
+import { buildQuizPayload, hasAllTasteAnswers, type ScaleValue } from "@/lib/quiz/build-quiz-payload";
+import { buildQuestionList, type QuizContentConfig, type QuizSectionId } from "@/lib/quiz/quiz-content-types";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { LogoMark } from "@/components/brand/Logo";
 import { PageLoadingScreen } from "@/components/ui/PageLoadingScreen";
 import { EmbeddedAuthPanel } from "@/components/auth/EmbeddedAuthPanel";
 import { PENDING_QUIZ_STORAGE_KEY, type PendingQuizV1 } from "@/lib/quiz/pending-quiz";
 
-type SectionId = "energy" | "social" | "flavor" | "taste";
-type ScaleValue = -2 | -1 | 0 | 1 | 2;
-
-type MoodQuestion = {
-  kind: "mood";
-  id: string;
-  section: SectionId;
-  prompt: string;
-  left: string;
-  right: string;
-};
-
-type TasteQuestion = {
-  kind: "taste";
-  id: string;
-  section: SectionId;
-  prompt: string;
-  options: Array<{ key: TasteOption; text: string }>;
-};
-
-const QUESTIONS: MoodQuestion[] = [
-  { kind: "mood", id: "m1", section: "energy", prompt: "How’s your energy right now?", left: "Low / Drained", right: "High / Energized" },
-  { kind: "mood", id: "m2", section: "energy", prompt: "What best describes your mood?", left: "Heavy / Overwhelmed", right: "Light / Happy" },
-  { kind: "mood", id: "m3", section: "energy", prompt: "How does your mind feel right now?", left: "Foggy / Tired", right: "Clear / Focused" },
-  { kind: "mood", id: "m4", section: "social", prompt: "What are you in the mood for socially?", left: "Be Alone", right: "Be Around People" },
-  { kind: "mood", id: "m5", section: "social", prompt: "Right now, what do you want most?", left: "Disconnect / Reset", right: "Go Out / Celebrate" },
-  { kind: "mood", id: "m6", section: "flavor", prompt: "What flavor direction feels right tonight?", left: "Deep / Smooth", right: "Crisp / Refreshing" },
-  { kind: "mood", id: "m7", section: "flavor", prompt: "What atmosphere matches your energy?", left: "Quiet / Candlelight", right: "Neon / High Energy" },
-];
-
-const TASTE_QUESTIONS: TasteQuestion[] = [
-  {
-    kind: "taste",
-    id: "t1",
-    section: "taste",
-    prompt: "Which flavor hits hardest for you when you’re eating?",
-    options: [
-      { key: "A", text: "Bright, tangy, citrusy" },
-      { key: "B", text: "Sweet, juicy, slightly candy-like" },
-      { key: "C", text: "Warm, smooth, slightly spiced" },
-    ],
-  },
-  {
-    kind: "taste",
-    id: "t2",
-    section: "taste",
-    prompt: "If you had to pick one, which would you reach for?",
-    options: [
-      { key: "A", text: "Lemon bar / key lime pie" },
-      { key: "B", text: "Strawberry shortcake / fruit tart" },
-      { key: "C", text: "Apple pie / baked dessert" },
-    ],
-  },
-  {
-    kind: "taste",
-    id: "t3",
-    section: "taste",
-    prompt: "What texture do you enjoy most?",
-    options: [
-      { key: "A", text: "Crisp and refreshing" },
-      { key: "B", text: "Light and juicy" },
-      { key: "C", text: "Rich and smooth" },
-    ],
-  },
-  {
-    kind: "taste",
-    id: "t4",
-    section: "taste",
-    prompt: "When you want something satisfying, you lean toward…",
-    options: [
-      { key: "A", text: "Something sharp and refreshing" },
-      { key: "B", text: "Something sweet and uplifting" },
-      { key: "C", text: "Something comforting and deep" },
-    ],
-  },
-  {
-    kind: "taste",
-    id: "t5",
-    section: "taste",
-    prompt: "After you eat, what finish do you prefer?",
-    options: [
-      { key: "A", text: "Clean and slightly tangy" },
-      { key: "B", text: "Sweet and lingering" },
-      { key: "C", text: "Warm and rounded" },
-    ],
-  },
-];
-
-const ALL_QUESTIONS = [...QUESTIONS, ...TASTE_QUESTIONS] as const;
-
-const SECTIONS: Record<SectionId, { title: string; subtitle: string }> = {
-  energy: { title: "Read Your Energy", subtitle: "Calibrating your emotional rhythm." },
-  social: { title: "Understand Your Vibe", subtitle: "Tuning social intent and mood direction." },
-  flavor: { title: "Reveal Your Pairing", subtitle: "Mapping sensory preference and atmosphere." },
-  taste: { title: "Taste Profiling", subtitle: "Capturing your sensory pull and finish." },
-};
-
 const SCALE: ScaleValue[] = [-2, -1, 0, 1, 2];
 
-export function QuizFlow() {
+export function QuizFlow({ content }: { content: QuizContentConfig }) {
+  const allQuestions = useMemo(() => buildQuestionList(content), [content]);
   const [stage, setStage] = useState<"questions" | "ready">("questions");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, ScaleValue>>({});
@@ -125,11 +30,30 @@ export function QuizFlow() {
   const [signupOpen, setSignupOpen] = useState(false);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const current = ALL_QUESTIONS[index];
-  const sectionMeta = SECTIONS[current.section];
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) {
+        clearTimeout(feedbackTimerRef.current);
+      }
+    };
+  }, []);
+
+  const safeIndex = allQuestions.length ? Math.min(index, allQuestions.length - 1) : 0;
+  const current = allQuestions[safeIndex];
+
+  if (!allQuestions.length || !current) {
+    return (
+      <p className="mx-auto max-w-lg px-6 py-20 text-center text-sm text-white/70">
+        Quiz is not configured. Ask an admin to enable quiz questions.
+      </p>
+    );
+  }
+
+  const sectionKey = current.section as QuizSectionId;
+  const sectionMeta = content.sections[sectionKey];
   const activeSection = current.section;
 
-  const isFinalQuestion = index === ALL_QUESTIONS.length - 1;
+  const isFinalQuestion = safeIndex === allQuestions.length - 1;
   const selected = current.kind === "mood" ? answers[current.id] : undefined;
   const selectedTaste = current.kind === "taste" ? tasteAnswers[current.id] : undefined;
 
@@ -190,27 +114,19 @@ export function QuizFlow() {
     setSoftSelected(null);
     setSoftTasteSelected(null);
     setIsAdvancing(false);
-    if (index > 0) {
+    if (safeIndex > 0) {
       setIndex((i) => i - 1);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (feedbackTimerRef.current) {
-        clearTimeout(feedbackTimerRef.current);
-      }
-    };
-  }, []);
-
   const handleViewResults = async () => {
     setError(null);
-    const payload = buildQuizPayload(answers);
+    const payload = buildQuizPayload(answers, content.moodQuestions);
     if (!payload) {
       setError("Complete each mood prompt to continue.");
       return;
     }
-    if (!hasAllTasteAnswers(tasteAnswers)) {
+    if (!hasAllTasteAnswers(tasteAnswers, content.tasteQuestions)) {
       setError("Complete each taste prompt to continue.");
       return;
     }
@@ -248,12 +164,12 @@ export function QuizFlow() {
   };
 
   const submitMoodCalibration = (sourceAnswers: Record<string, ScaleValue>, sourceTasteAnswers: TasteAnswers) => {
-    const payload = buildQuizPayload(sourceAnswers);
+    const payload = buildQuizPayload(sourceAnswers, content.moodQuestions);
     if (!payload) {
       setError("Complete each mood prompt to continue.");
       return;
     }
-    if (!hasAllTasteAnswers(sourceTasteAnswers)) {
+    if (!hasAllTasteAnswers(sourceTasteAnswers, content.tasteQuestions)) {
       setError("Complete each taste prompt to continue.");
       return;
     }
@@ -309,7 +225,7 @@ export function QuizFlow() {
                 role="group"
                 aria-label="Question progress"
               >
-                {ALL_QUESTIONS.map((q, i) => (
+                {allQuestions.map((q, i) => (
                   <span
                     key={q.id}
                     className={`h-1.5 shrink-0 rounded-full transition max-sm:w-6 sm:w-8 ${
@@ -513,46 +429,4 @@ export function QuizFlow() {
       ) : null}
     </div>
   );
-}
-
-function buildQuizPayload(answers: Record<string, ScaleValue>): QuizAnswers | null {
-  const required = QUESTIONS.every((q) => typeof answers[q.id] === "number");
-  if (!required) return null;
-
-  const energy = toLetterRightPositive(answers.m1);
-  const emotion = toLetterRightPositiveInvertedABC(answers.m2);
-  const social = toLetterRightPositiveInvertedABC(answers.m4);
-  const mental = toLetterRightPositiveInvertedABC(answers.m3);
-
-  const intentComposite = average([answers.m5, answers.m6, answers.m7]);
-  const intent = toLetterRightPositiveInvertedABC(intentComposite);
-
-  return {
-    q1: energy,
-    q2: emotion,
-    q3: social,
-    q4: mental,
-    q5: intent,
-  };
-}
-
-function hasAllTasteAnswers(answers: TasteAnswers) {
-  return TASTE_QUESTIONS.every((q) => answers[q.id] === "A" || answers[q.id] === "B" || answers[q.id] === "C");
-}
-
-function average(values: number[]) {
-  return values.reduce((acc, v) => acc + v, 0) / values.length;
-}
-
-function toLetterRightPositive(value: number): AnswerLetter {
-  if (value <= -0.7) return "A";
-  if (value >= 0.7) return "C";
-  return "B";
-}
-
-// For dimensions where A represents "right/positive" and C "left/negative"
-function toLetterRightPositiveInvertedABC(value: number): AnswerLetter {
-  if (value <= -0.7) return "C";
-  if (value >= 0.7) return "A";
-  return "B";
 }
