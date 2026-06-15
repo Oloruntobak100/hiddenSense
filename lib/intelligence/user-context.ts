@@ -1,6 +1,11 @@
 import "server-only";
 
+import { avoidIdsForMood } from "@/lib/intelligence/mood-avoid";
+import type { MoodScopedAvoid } from "@/lib/intelligence/mood-avoid";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+export type { MoodScopedAvoid };
+export { avoidIdsForMood };
 
 export type UserHistoryEntry = {
   date: string;
@@ -19,7 +24,8 @@ export type UserHistoryEntry = {
 export type UserRecommendationContext = {
   preferenceSummary: string | null;
   history: UserHistoryEntry[];
-  avoidRecommendationIds: string[];
+  /** Dislikes tied to the mood they occurred in — not global bans. */
+  avoidPairingsByMood: MoodScopedAvoid[];
 };
 
 function nameFromPayload(payload: unknown, key: "cocktailName" | "foodName"): string | null {
@@ -50,7 +56,7 @@ export async function loadUserRecommendationContext(
     return {
       preferenceSummary: profile?.ai_preference_summary ?? null,
       history: [],
-      avoidRecommendationIds: [],
+      avoidPairingsByMood: [],
     };
   }
 
@@ -126,17 +132,19 @@ export async function loadUserRecommendationContext(
     };
   });
 
-  const avoidRecommendationIds = [
-    ...new Set(
-      history
-        .filter((h) => h.pairingFeedback === "not_really" && h.recommendationId)
-        .map((h) => h.recommendationId as string),
-    ),
-  ];
+  const avoidPairingsByMood: MoodScopedAvoid[] = history
+    .filter((h) => h.pairingFeedback === "not_really" && h.recommendationId)
+    .map((h) => ({
+      moodKey: h.moodKey,
+      moodName: h.moodName,
+      recommendationId: h.recommendationId as string,
+      drinkName: h.drinkName,
+      foodName: h.foodName,
+    }));
 
   return {
     preferenceSummary: profile?.ai_preference_summary ?? null,
     history,
-    avoidRecommendationIds,
+    avoidPairingsByMood,
   };
 }

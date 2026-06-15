@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isAlcoholCategoryAllowedForMinor } from "@/lib/admin/alcohol-categories";
+import { isAlcoholCategoryAllowedForMinorList } from "@/lib/admin/alcohol-categories";
 import { pickAdminFoodListing } from "@/lib/admin/pick-food-listing";
 import { isUsableUploadedImageUrl } from "@/lib/images/uploaded-url";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
@@ -52,11 +52,13 @@ export async function loadCatalogCandidates({
   alcoholPolicy,
   maxCandidates,
   avoidIds = [],
+  minorAllowedCategories,
 }: {
   tasteLane: TasteLane;
   alcoholPolicy: AlcoholPolicy;
   maxCandidates: number;
   avoidIds?: string[];
+  minorAllowedCategories: readonly string[];
 }): Promise<{ candidates: CatalogCandidate[]; rowsById: Map<string, ListingRow> }> {
   const sb = getSupabaseAdmin();
   const { data } = await sb
@@ -70,7 +72,9 @@ export async function loadCatalogCandidates({
 
   let pool = data as ListingRow[];
   if (alcoholPolicy === "minor") {
-    pool = pool.filter((r) => isAlcoholCategoryAllowedForMinor(String(r.alcohol_category ?? "")));
+    pool = pool.filter((r) =>
+      isAlcoholCategoryAllowedForMinorList(String(r.alcohol_category ?? ""), minorAllowedCategories),
+    );
   }
 
   const avoid = new Set(avoidIds);

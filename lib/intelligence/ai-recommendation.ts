@@ -17,6 +17,7 @@ import type {
 import type { EmotionalScores } from "@/lib/intelligence/scoring";
 import type { TasteLane } from "@/lib/intelligence/taste-lane";
 import type { UserRecommendationContext } from "@/lib/intelligence/user-context";
+import { avoidIdsForMood } from "@/lib/intelligence/user-context";
 
 const AiPickSchema = z.object({
   recommendation_id: z.string().uuid(),
@@ -32,6 +33,7 @@ export type AiRecommendationInput = {
   flavorProfile: string;
   atmosphereProfile: string;
   userContext: UserRecommendationContext;
+  minorAllowedCategories: readonly string[];
 };
 
 function buildUserMessage(input: AiRecommendationInput, candidates: CatalogCandidate[]) {
@@ -49,7 +51,11 @@ function buildUserMessage(input: AiRecommendationInput, candidates: CatalogCandi
       },
       preference_summary: input.userContext.preferenceSummary,
       user_history: input.userContext.history,
-      avoid_recommendation_ids: input.userContext.avoidRecommendationIds,
+      avoid_pairings_by_mood: input.userContext.avoidPairingsByMood,
+      avoid_for_current_mood_ids: avoidIdsForMood(
+        input.userContext.avoidPairingsByMood,
+        input.mood.key,
+      ),
       catalog_candidates: candidates,
       required_response_schema: {
         recommendation_id: "uuid from catalog_candidates.recommendationId",
@@ -67,11 +73,14 @@ export async function getAiRecommendation(
   const apiKey = getOpenAiApiKey();
   if (!apiKey || !input.config.enabled) return null;
 
+  const avoidIds = avoidIdsForMood(input.userContext.avoidPairingsByMood, input.mood.key);
+
   const { candidates, rowsById } = await loadCatalogCandidates({
     tasteLane: input.tasteLane,
     alcoholPolicy: input.alcoholPolicy,
     maxCandidates: input.config.maxCandidates,
-    avoidIds: input.userContext.avoidRecommendationIds,
+    avoidIds,
+    minorAllowedCategories: input.minorAllowedCategories,
   });
 
   if (!candidates.length) return null;

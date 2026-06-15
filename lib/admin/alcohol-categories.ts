@@ -1,13 +1,3 @@
-/**
- * Admin listings in this category are eligible for under-21 recommendations.
- * All spirit / wine / beer / RTD / blend categories are excluded for minors.
- */
-export function isAlcoholCategoryAllowedForMinor(category: string | null | undefined): boolean {
-  return String(category ?? "")
-    .trim()
-    .toLowerCase() === "non-alcoholic";
-}
-
 /** Dropdown options for curated Square listings (display value = stored alcohol_category string). */
 export const ALCOHOL_CATEGORIES = [
   "Whiskey",
@@ -32,3 +22,23 @@ export const ALCOHOL_CATEGORIES = [
 ] as const;
 
 export type AlcoholCategory = (typeof ALCOHOL_CATEGORIES)[number];
+
+export const DEFAULT_MINOR_ALLOWED_CATEGORIES = ["Non-alcoholic"] as const;
+
+function normalizeCategory(category: string) {
+  return category.trim().toLowerCase();
+}
+
+export function isAlcoholCategoryAllowedForMinorList(
+  category: string | null | undefined,
+  allowedCategories: readonly string[],
+): boolean {
+  const normalized = normalizeCategory(String(category ?? ""));
+  if (!normalized) return false;
+  return allowedCategories.some((c) => normalizeCategory(c) === normalized);
+}
+
+/** @deprecated Use isAlcoholCategoryAllowedForMinorList with policy from getCatalogPolicyConfig */
+export function isAlcoholCategoryAllowedForMinor(category: string | null | undefined): boolean {
+  return isAlcoholCategoryAllowedForMinorList(category, DEFAULT_MINOR_ALLOWED_CATEGORIES);
+}

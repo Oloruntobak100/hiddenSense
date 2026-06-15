@@ -19,15 +19,17 @@ You receive:
 - current_session: mood, taste lane, emotional scores, alcohol policy
 - user_history: past recommendations and feedback (pairing_feedback, mood accuracy, ratings, checkout clicks)
 - preference_summary: rolling notes from prior visits
-- avoid_recommendation_ids: listings the user disliked — never select these
+- avoid_pairings_by_mood: pairings rated "not_really" with the mood_key they occurred in
+- avoid_for_current_mood_ids: listings to block for the current mood only
 
 Rules:
 1. ONLY pick a listing from catalog_candidates using its recommendation_id.
-2. Do NOT select listings in avoid_recommendation_ids or pairings the user rated "not_really".
-3. Prefer flavors, moods, and categories that received "absolutely" or checkout clicks.
-4. If user_history is empty, rely on current_session and catalog metadata only.
-5. Write emotionalReasoning in warm, concise second-person voice (2–4 sentences).
-6. Return valid JSON matching the required schema exactly.`;
+2. Do NOT select listings in avoid_for_current_mood_ids for the current mood.
+3. A dislike in one mood does NOT ban that listing in other moods — check mood_key on avoid_pairings_by_mood.
+4. Prefer flavors, moods, and categories that received "absolutely" or checkout clicks.
+5. If user_history is empty, rely on current_session and catalog metadata only.
+6. Write emotionalReasoning in warm, concise second-person voice (2–4 sentences).
+7. Return valid JSON matching the required schema exactly.`;
 
 type ConfigRow = {
   enabled: boolean;

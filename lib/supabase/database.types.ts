@@ -299,6 +299,20 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["ai_agent_config"]["Insert"]>;
         Relationships: [];
       };
+      catalog_policy_config: {
+        Row: {
+          id: number;
+          minor_allowed_categories: string[];
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          minor_allowed_categories?: string[];
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["catalog_policy_config"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

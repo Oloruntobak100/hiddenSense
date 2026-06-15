@@ -1,5 +1,5 @@
 import "server-only";
-import { isAlcoholCategoryAllowedForMinor } from "@/lib/admin/alcohol-categories";
+import { isAlcoholCategoryAllowedForMinorList } from "@/lib/admin/alcohol-categories";
 import { pickAdminFoodListing } from "@/lib/admin/pick-food-listing";
 import { isUsableUploadedImageUrl } from "@/lib/images/uploaded-url";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
@@ -33,21 +33,27 @@ export async function getRecommendationForMood({
   scores,
   tasteLane,
   alcoholPolicy = "adult",
+  avoidIds = [],
+  minorAllowedCategories,
 }: {
   mood: MoodArchetype;
   scores: EmotionalScores;
   tasteLane: TasteLane;
   alcoholPolicy?: AlcoholPolicy;
+  avoidIds?: string[];
+  minorAllowedCategories: readonly string[];
 }): Promise<RecommendationEngineResult> {
+  const pickOpts = { minorOnly: alcoholPolicy === "minor", avoidIds, minorAllowedCategories };
+
   if (alcoholPolicy === "minor") {
-    const adminNa = await findAdminRecommendation(mood, scores, tasteLane, { minorOnly: true });
+    const adminNa = await findAdminRecommendation(mood, scores, tasteLane, pickOpts);
     if (adminNa) return adminNa;
     const internalNa = minorInternalFromCatalog(mood, scores, tasteLane);
     if (internalNa) return internalNa;
     return minorAiFallback(mood, scores, tasteLane);
   }
 
-  const adminFirst = await findAdminRecommendation(mood, scores, tasteLane, { minorOnly: false });
+  const adminFirst = await findAdminRecommendation(mood, scores, tasteLane, pickOpts);
   if (adminFirst) return adminFirst;
 
   const internal = getRecommendation(mood.key);
@@ -93,13 +99,17 @@ export async function getRecommendationForMood({
   };
 }
 
-type AdminPickOpts = { minorOnly?: boolean };
+type AdminPickOpts = {
+  minorOnly?: boolean;
+  avoidIds?: string[];
+  minorAllowedCategories: readonly string[];
+};
 
 async function findAdminRecommendation(
   mood: MoodArchetype,
   scores: EmotionalScores,
   tasteLane: TasteLane,
-  opts: AdminPickOpts = {},
+  opts: AdminPickOpts,
 ): Promise<RecommendationEngineResult | null> {
   const sb = getSupabaseAdmin();
   const { data } = await sb
@@ -113,8 +123,14 @@ async function findAdminRecommendation(
 
   let pool = data;
   if (opts.minorOnly) {
-    pool = data.filter((r) => isAlcoholCategoryAllowedForMinor(String(r.alcohol_category ?? "")));
+    pool = data.filter((r) =>
+      isAlcoholCategoryAllowedForMinorList(String(r.alcohol_category ?? ""), opts.minorAllowedCategories),
+    );
   }
+
+  const avoid = new Set(opts.avoidIds ?? []);
+  pool = pool.filter((r) => !avoid.has(r.id));
+
   if (!pool.length) return null;
 
   const primary = pickByTaste(pool, tasteLane) ?? pool[0];

@@ -10,7 +10,8 @@ import {
 } from "@/lib/intelligence/recommendation-engine";
 import type { EmotionalScores } from "@/lib/intelligence/scoring";
 import type { TasteLane } from "@/lib/intelligence/taste-lane";
-import { loadUserRecommendationContext } from "@/lib/intelligence/user-context";
+import { avoidIdsForMood, loadUserRecommendationContext } from "@/lib/intelligence/user-context";
+import { getCatalogPolicyConfig } from "@/lib/admin/catalog-policy";
 
 export type ResolveRecommendationInput = {
   profileId: string;
@@ -26,11 +27,13 @@ export type ResolveRecommendationInput = {
 export async function resolveRecommendation(
   input: ResolveRecommendationInput,
 ): Promise<RecommendationEngineResult> {
-  const config = await getAiAgentConfig();
+  const [config, catalogPolicy] = await Promise.all([getAiAgentConfig(), getCatalogPolicyConfig()]);
+  const minorAllowedCategories = catalogPolicy.minorAllowedCategories;
+
+  const userContext = await loadUserRecommendationContext(input.profileId, config.historyLimit);
+  const avoidIds = avoidIdsForMood(userContext.avoidPairingsByMood, input.mood.key);
 
   if (config.enabled) {
-    const userContext = await loadUserRecommendationContext(input.profileId, config.historyLimit);
-
     const aiResult = await getAiRecommendation({
       config,
       mood: input.mood,
@@ -40,6 +43,7 @@ export async function resolveRecommendation(
       flavorProfile: input.flavorProfile,
       atmosphereProfile: input.atmosphereProfile,
       userContext,
+      minorAllowedCategories,
     });
 
     if (aiResult) return aiResult;
@@ -50,5 +54,7 @@ export async function resolveRecommendation(
     scores: input.scores,
     tasteLane: input.tasteLane,
     alcoholPolicy: input.alcoholPolicy,
+    avoidIds,
+    minorAllowedCategories,
   });
 }

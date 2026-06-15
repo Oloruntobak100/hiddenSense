@@ -146,7 +146,7 @@ export function AdminAiSettingsPanel({
       <AdminDetails summary="How the AI learns (no model fine-tuning)">
         <ul className="list-disc space-y-2 pl-5 text-sm text-white/65">
           <li>Each quiz sends mood scores, taste lane, and up to N past recommendations to OpenAI.</li>
-          <li>Pairing feedback (absolutely / close enough / not really), mood accuracy, ratings, and checkout clicks are included.</li>
+          <li>Pairing feedback is mood-specific: a &quot;not really&quot; only blocks that drink+food for the same mood later.</li>
           <li>After feedback, a preference summary is refreshed on the guest profile for future sessions.</li>
           <li>The AI must pick from your active catalog — it cannot invent new drinks.</li>
         </ul>

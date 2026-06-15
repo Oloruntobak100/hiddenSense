@@ -24,10 +24,10 @@ function ruleBasedSummary(history: UserHistoryEntry[], existing: string | null):
   if (disliked.length) {
     const names = disliked
       .slice(0, 3)
-      .map((h) => h.drinkName)
+      .map((h) => `${h.drinkName ?? "pairing"} (${h.moodName})`)
       .filter(Boolean)
       .join(", ");
-    if (names) lines.push(`Disliked or rejected: ${names}.`);
+    if (names) lines.push(`Disliked or rejected for specific moods: ${names}.`);
   }
 
   if (clicked.length) {
