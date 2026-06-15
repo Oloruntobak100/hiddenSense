@@ -20,7 +20,7 @@ import {
   generateFlavorProfile,
 } from "@/lib/intelligence/scoring";
 import { MOOD_ARCHETYPES } from "@/lib/intelligence/mood-archetypes";
-import { getRecommendationForMood } from "@/lib/intelligence/recommendation-engine";
+import { resolveRecommendation } from "@/lib/intelligence/resolve-recommendation";
 import type { TasteLane } from "@/lib/intelligence/taste-lane";
 
 export type QuizActionState = { ok: false; error: string };
@@ -65,14 +65,17 @@ export async function submitQuiz(input: SubmitQuizInput): Promise<QuizActionStat
   const confidencePct = calculateConfidenceScore(scoreProfile, moodMatch.primary.mood, moodMatch.secondary?.mood);
   const chosenMood = moodMatch.primary?.mood ?? MOOD_ARCHETYPES.find((m) => m.key === mood.mood_key) ?? MOOD_ARCHETYPES[0];
   const alcoholPolicy = await getAgeAlcoholPolicy();
-  const recommendation = await getRecommendationForMood({
+  const flavorProfile = generateFlavorProfile(scoreProfile);
+  const atmosphereProfile = generateAtmosphereProfile(scoreProfile);
+  const recommendation = await resolveRecommendation({
+    profileId,
     mood: chosenMood,
     scores: scoreProfile,
     tasteLane,
     alcoholPolicy,
+    flavorProfile,
+    atmosphereProfile,
   });
-  const flavorProfile = generateFlavorProfile(scoreProfile);
-  const atmosphereProfile = generateAtmosphereProfile(scoreProfile);
 
   if (await isDemoSession()) {
     await setDemoResultPayload({

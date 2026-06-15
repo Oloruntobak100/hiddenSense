@@ -11,7 +11,7 @@ import type { TasteLane } from "@/lib/intelligence/taste-lane";
 export type AlcoholPolicy = "adult" | "minor";
 
 export type RecommendationEngineResult = {
-  source: "admin" | "internal" | "external" | "ai_fallback";
+  source: "admin" | "internal" | "external" | "ai_fallback" | "ai";
   recommendationId: string | null;
   cocktailName: string;
   alcoholCategory: string;

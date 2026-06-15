@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentProfileId } from "@/lib/auth/current-profile";
+import { refreshProfilePreferenceSummary } from "@/lib/intelligence/preference-summary";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function logRecommendationClick(moodResultId: string, recommendationId?: string | null) {
@@ -26,6 +27,7 @@ export async function logRecommendationClick(moodResultId: string, recommendatio
   if (clickErr || analyticsErr) {
     return { ok: false as const, error: clickErr?.message ?? analyticsErr?.message ?? "Failed to track click." };
   }
+  void refreshProfilePreferenceSummary(profileId).catch((err) => console.error("[preference-summary]", err));
   revalidatePath("/result");
   return { ok: true as const };
 }
@@ -39,6 +41,7 @@ export async function submitResultFeedback(moodResultId: string, response: "abso
     { onConflict: "mood_result_id" },
   );
   if (error) return { ok: false as const, error: error.message };
+  void refreshProfilePreferenceSummary(profileId).catch((err) => console.error("[preference-summary]", err));
   revalidatePath("/result");
   return { ok: true as const };
 }

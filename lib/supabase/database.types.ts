@@ -20,6 +20,7 @@ export interface Database {
           sms_opt_in: boolean;
           alcohol_policy: "adult" | "minor";
           auth_user_id: string | null;
+          ai_preference_summary: string | null;
           created_at: string;
         };
         Insert: {
@@ -32,6 +33,7 @@ export interface Database {
           sms_opt_in?: boolean;
           alcohol_policy?: "adult" | "minor";
           auth_user_id?: string | null;
+          ai_preference_summary?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
@@ -271,6 +273,30 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["media_assets"]["Insert"]>;
+        Relationships: [];
+      };
+      ai_agent_config: {
+        Row: {
+          id: number;
+          enabled: boolean;
+          system_prompt: string;
+          model: string;
+          temperature: number;
+          max_candidates: number;
+          history_limit: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          enabled?: boolean;
+          system_prompt: string;
+          model?: string;
+          temperature?: number;
+          max_candidates?: number;
+          history_limit?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["ai_agent_config"]["Insert"]>;
         Relationships: [];
       };
     };

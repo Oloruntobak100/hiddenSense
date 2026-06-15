@@ -5,6 +5,7 @@ import { z } from "zod";
 import { DEMO_SESSION_ID } from "@/lib/session/constants";
 import { getQuizSessionForProfile } from "@/lib/data/quiz-session";
 import { getCurrentProfileId } from "@/lib/auth/current-profile";
+import { refreshProfilePreferenceSummary } from "@/lib/intelligence/preference-summary";
 import {
   getDemoResultPayload,
   isDemoSession,
@@ -80,6 +81,8 @@ export async function submitFeedback(sessionId: string, formData: FormData) {
     console.error(error);
     redirect(`/feedback/${sessionId}?error=1`);
   }
+
+  void refreshProfilePreferenceSummary(profileId).catch((err) => console.error("[preference-summary]", err));
 
   redirect("/thanks");
 }
